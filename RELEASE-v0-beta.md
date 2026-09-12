@@ -236,6 +236,64 @@ Gary 於 Mac 以 GitHub 網頁建 repo `gary40/weiz-digital-age`，`git push --f
 
 ---
 
+## 12. v1.0-preview：v4 完整改版規格 差異盤點（2026-09-12）
+
+**狀態：預覽完成，未部署正式站。** 程式在分支 `v4-preview`，私人預覽頁見對話；main 仍是 v0.9-y2k（ec1d124）。
+
+### 12-1 v4 要求 vs 現況
+
+| v4 章節 | 要求 | 現況 | 說明 |
+|---|---|---|---|
+| §2 流程 | 五頁流程、本人重整、朋友入口、再玩一次新 attempt | ✅ | 每輪產生 attempt_id；guest_id 存本機 |
+| §3 題庫 | 12 計分＋3 偏好、欄位擴充、逐題查證、新計分、稱號規則、移除百分位、可比題組 | ⏳ 部分 | **已做**：移除百分位（結果頁與證書）；QUIZ_VERSION／SCORE_VERSION 寫入結果與事件。**未做（需確認）**：偏好題、題庫欄位擴充、新計分公式、稱號規則表、固定題組 challenge_id（見 12-3） |
+| §4 結果與分享 | 三按鈕、平台面板 Threads／IG／FB、文案模板、由玩家確認發布 | ✅ | 第三顆改「分享到 Threads／IG／FB」；面板含 Threads（web intent 預填文字＋連結）、Instagram（存證書＋複製文案＋指引）、Facebook（sharer 帶連結）、系統分享、複製文案、複製連結、存證書；曬證書文案照模板；沒有經歷答案 → 「本輪科技關鍵字」「這些你也認得嗎？」 |
+| §5 證書 | 加關鍵字、四顆按鈕、小知識卡、官方 LINE 入口、Email 移出主流程 | ✅ | 證書多「本輪科技關鍵字」（自動縮字不溢出）；按鈕：儲存證書／曬證書到 Threads／IG／FB／複製分享文案／關閉；小知識卡 50 題各一則（優先答錯題，全對給延伸）；LINE 入口已填 Gary 提供的 `https://www.weiz.com.tw/customer/auth/line?line_action=line_login`（官網 LINE 登入／綁定頁；**若有 lin.ee 加好友連結建議替換**，入口文案為「加入 WEiZ LINE 好友」）；Email 依 Gary 決定保留，改為**結果頁右下角 Z 圓標懸浮按鈕**「領取 WEiZ 專屬優惠」，點開面板填寫，成功後圓標打勾並記住 |
+| §6 推薦碼 | share_id、三種來源欄位、bot 排除、自願 LINE 綁定 | ⏳ 部分 | **已做**：每次分享產生不可推測 share_id，連結帶 `s=`／`p=`，shares 表記 attempt／guest／平台／內容類型／parent_share_id；訪客首次有效互動才記 referral_visit；UTM（首次行銷來源）、p（本站分享入口）、referrer host 分開記錄。**未做**：LINE Login／LIFF 綁定（需 HTTPS 後端與 channel） |
+| §7 事件 | 命名、對照表、不重複、test_mode | ✅ | 對照見 12-2；`?test=1` 全部事件與後端列標 test_mode=1 |
+| §8 架構 | 可讀回應＋receipt_id、去重、限流、SQL 選型 | ⏳ 部分 | **已做**：POST 改 CORS 可讀，後端回 `{ok, receipt_id}`，名單只在 ok 才顯示成功；attempt_id／share_id 去重；欄位白名單沿用。**未做**：限流、SQL／正式後端（需選型）。**待 Gary 實機確認**：Apps Script 跟隨轉址後的 CORS 讀取（沙箱無法連 Google） |
+| §10 驗收 | 失敗情境 | ✅ 61／61 | 新增 E1／E1c 平台面板、E2b／E2c 證書按鈕與文案、E7 推薦事件、F0 小知識與 Email 卡；跨裝置仍未實測 |
+
+### 12-2 GA4 事件對照（舊 → 新）
+
+| 舊名稱 | 新名稱（v4） | 備註 |
+|---|---|---|
+| quiz_start | quiz_start | 加 attempt_id、quiz_version |
+| — | question_view | 每題進入 |
+| answer | answer_submit | 加 question_type |
+| finish | quiz_complete | 加 attempt_id、quiz_version、score_version |
+| quiz_abandon | quiz_abandon | — |
+| certificate_open | certificate_open | — |
+| — | certificate_generated | blob 產生成功（bytes、format） |
+| certificate_download | certificate_download_click | 下載觸發≠已保存 |
+| certificate_share | share_handoff（platform_selected=system, content_type=certificate） | — |
+| share_click／share_done／share_cancel | share_click（content_type）／share_handoff（platform_selected）／share_cancel | handoff≠發文成功 |
+| copy_link | copy_link、copy_text | — |
+| line_challenge_click | line_challenge_click | — |
+| — | referral_visit／referral_start／referral_complete | 帶 share_id、platform_selected（無個資） |
+| — | knowledge_view | knowledge_card_id=q{題號} |
+| — | line_oa_click | 入口尚未啟用 |
+| lead | lead_submit／lead_success／lead_error | 只在後端回 ok 才 success |
+| sound_toggle、view_shared | 沿用 | — |
+
+### 12-3 需要 Gary 集中決定（v4 §9）
+
+1. ~~WEiZ 官方 LINE 加好友連結~~ ✅ 已填（官網 LINE 登入頁）。備註：這不是 LINE 官方帳號的「加好友」連結（lin.ee／@ID），點了會到 WEiZ 官網會員 LINE 登入；若目標是累積 OA 好友，請提供 LINE OA 後台的加好友網址替換。
+2. **新計分公式與稱號規則**：v4 要求知識分數與記憶年代分離、稱號依規則表。我建議下一輪先給你「10 個固定題組案例」的對照表（舊分數 vs 新分數 vs 稱號）供確認，確認前 SCORE_VERSION 維持 v1。
+3. **偏好／經歷題**：要加 3 題偏好題（不計分）就要改題庫結構與 12＋3 配置，請確認題目來源。
+4. **後端選型**：Apps Script＋Sheets 能撐測試期；正式流量、限流、LINE Login 需 HTTPS 後端（Cloudflare Workers＋D1 或 Supabase 是低成本選項）。請給預期流量、費用上限、維運負責人。
+5. **LINE Login／LIFF**：需要 channel、provider、redirect URI、後端秘密配置；未配置前不做，不放假登入。
+6. ~~Email 卡去留~~ ✅ 保留，改為右下角 Z 圓標（Gary 決定）。個資保留期限與撤回流程仍待定，文案已寫「可隨時回信取消」。
+7. **Meta 分享能力**：Threads web intent 只帶文字＋連結、IG 無網頁預填、FB sharer 只帶連結，都已依此設計 fallback；若要「一鍵帶圖」需各平台 App／API 授權，另案評估。
+
+### 12-4 部署與回復
+
+- 預覽：分支 `v4-preview`（commit 見 git log）；私人預覽頁在對話中。**預覽環境會擋下載**，證書「儲存」與分享請在分支部署後或本機 `python3 -m http.server` 測。
+- 上正式站：你確認後我把 `v4-preview` 合併到 main，並請你**重新部署 Apps Script（Code.gs v1.0-preview）**，前端才能讀到 receipt 與 shares 表。
+- 回復：main 目前 ec1d124（v0.9-y2k）、標籤 v0-beta.2（白底版）；資料欄位只新增不刪除，新舊前端可並存。
+- 未驗證：iOS／Android 實機分享與存圖、Threads／FB 實際跳轉、Apps Script CORS 可讀回應、GA4 DebugView。
+
+---
+
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 AI 產出驗證區塊
@@ -251,7 +309,7 @@ Gary 於 Mac 以 GitHub 網頁建 repo `gary40/weiz-digital-age`，`git push --f
 ▸ 已驗證項目：Chromium 141 自動化 51／51；正式網址 curl 200（Gary）；Apps Script GET／POST（Gary 執行 verify-backend.sh）；GA4 gtag 載入與 finish 事件（沙箱模擬）；無聲音檔 duration 0.25 s 且 paused=false；
   再測一次後 location.search 保留；圖卡 blob 1.9 MB 預先產生、下載檔名正確；兩個 script 區塊語法檢查通過；
   commit hash 3c68b9c／813c3c1 取自 git log
-▸ 未確認項目／假設：v0.9-y2k 在 iOS／Android 實機的存圖、分享、LINE 跳轉；折扣碼寄送機制與內容；WebKit 自動化結果；線上回歸；M1–M13 真機結果；
+▸ 未確認項目／假設：v1.0-preview 的 Apps Script CORS 可讀回應、Threads／FB／IG 實機流程；50 則科技小知識待人工查證；v0.9-y2k 在 iOS／Android 實機的存圖、分享、LINE 跳轉；折扣碼寄送機制與內容；WebKit 自動化結果；線上回歸；M1–M13 真機結果；
   B1／B3 修正在 iPhone 上的實際效果；LINE 分享預覽；50 題事實年份
 ▸ 風險分級：☑ B 對外發布（測驗將公開給測試者與社群）
 ▸ 建議審核人：Gary
