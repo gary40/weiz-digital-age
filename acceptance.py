@@ -189,7 +189,7 @@ async def main():
         h = await pg.evaluate("location.hash"); my_age = await pg.evaluate("lastResult.age")
         await pg.click('#shareBtn'); await pg.wait_for_timeout(400)
         sheet = await pg.evaluate("({shown:document.querySelector('#shareSheet').classList.contains('show'), pfs:[...document.querySelectorAll('#shareSheet .pf')].map(b=>b.lastChild.textContent.trim()), th:document.querySelector('[data-pf=threads]').href, fb:document.querySelector('[data-pf=facebook]').href, label:document.querySelector('#shareBtn').textContent.trim()})")
-        rec('E 分享', 'E1 「分享到 Threads／IG／FB」開平台面板：三平台＋系統分享，Threads／FB 連結帶 share_id', sheet['shown'] and sheet['label']=='分享到 Threads／IG／FB' and sheet['pfs']==['Threads','Instagram','Facebook','系統分享'] and sheet['th'].startswith('https://www.threads.net/intent/post?text=') and '%26s%3D' in sheet['th'] and sheet['fb'].startswith('https://www.facebook.com/sharer/sharer.php?u=') and '%26p%3Dfacebook' in sheet['fb'], str(sheet['pfs']))
+        rec('E 分享', 'E1 「分享挑戰！」開平台面板：三平台＋系統分享，Threads／FB 連結帶 share_id', sheet['shown'] and sheet['label']=='分享挑戰！' and sheet['pfs']==['Threads','Instagram','Facebook','系統分享'] and sheet['th'].startswith('https://www.threads.net/intent/post?text=') and '%26s%3D' in sheet['th'] and sheet['fb'].startswith('https://www.facebook.com/sharer/sharer.php?u=') and '%26p%3Dfacebook' in sheet['fb'], str(sheet['pfs']))
         await pg.click('#shareSheet [data-pf=copy_link]'); await pg.wait_for_timeout(300)
         clip = await pg.evaluate("navigator.clipboard.readText().catch(()=>'')")
         rec('E 分享', 'E1c 面板「複製連結」：挑戰連結含 #a= 與 s=／p= 歸因參數', ('#a=' in clip) and ('&s=' in clip) and ('&p=copy' in clip), clip[-60:])
@@ -236,7 +236,7 @@ async def main():
 
         # ---------- F. 名單 ----------
         ctx, pg, errs = await fresh(b); await to_quiz(pg, 2); await answer_all(pg, 'rand'); await pg.wait_for_timeout(4800)
-        rec('F 名單', 'F0 Email 不在主流程：右下角 Z 圓標可見、小知識卡有出現、LINE OA 入口有連結', await pg.evaluate("!document.querySelector('#offerFab').hidden && document.querySelector('#tipCard').style.display!=='none' && document.querySelector('#tipBody').textContent.length>10 && document.querySelector('#oaCard').style.display!=='none' && document.querySelector('#oaCard').href.includes('weiz.com.tw')"))
+        rec('F 名單', 'F0 Email 不在主流程：右下角 Z 圓標可見、小知識卡有出現、LINE OA 入口有連結', await pg.evaluate("!document.querySelector('#offerFab').hidden && document.querySelector('#tipCard').style.display!=='none' && document.querySelector('#tipBody').textContent.length>10 && document.querySelector('#oaCard').style.display!=='none' && document.querySelector('#oaCard').href==='https://lin.ee/N50PvtRt'"))
         await pg.click('#offerFab'); await pg.wait_for_timeout(300)
         rec('F 名單', 'F0b 點圓標開優惠面板，表單可見', await pg.evaluate("document.querySelector('#offerModal').classList.contains('show') && document.querySelector('#leadEmail').offsetParent!==null"))
         await pg.fill('#leadEmail', 'not-an-email'); await pg.click('#leadBtn'); await pg.wait_for_timeout(200)

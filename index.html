@@ -13,6 +13,7 @@
 <meta name="theme-color" content="#333333">
 <meta name="theme-color" content="#333333">
 <meta name="theme-color" content="#333333">
+<meta name="theme-color" content="#333333">
 <title>你的數位年齡是幾歲？｜WEiZ 數位年齡測驗</title>
 <meta name="description" content="15 題 3C 與網路時事快問快答，每題 15 秒，測出你的數位年齡。WEiZ 出品。">
 <meta property="og:title" content="你的數位年齡是幾歲？｜WEiZ 數位年齡測驗">
@@ -281,20 +282,24 @@ body.paused .scanner,body.paused .mem-line,body.paused .beam,body.paused .beam-d
 .row3 .btn{min-height:44px;font-size:13px;padding:0 6px}
 .sheet-note{min-height:18px;font-size:12px;color:#FFE7A3}
 /* 懸浮 Z 圓標 */
-.fab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:6;width:56px;height:56px;border-radius:50%;background:var(--weiz-indigo-500);color:#fff;box-shadow:0 0 0 3px #2C2C32,0 0 0 5px var(--weiz-gold),0 10px 26px rgba(93,89,255,.45);display:grid;place-items:center;animation:fabIn .4s var(--ease) both}
+.fab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:6;width:58px;height:58px;border-radius:50%;background:#fff;color:#333;box-shadow:0 0 0 3px #2C2C32,0 0 0 5px var(--weiz-gold),0 10px 26px rgba(93,89,255,.45);display:grid;place-items:center;animation:fabIn .4s var(--ease) both}
 .fab[hidden]{display:none}
-.fab .fab-z{display:grid;place-items:center;width:30px;height:30px}
-.fab .fab-z svg{width:30px;height:30px}
+.fab .fab-z{display:grid;place-items:center;width:40px;height:40px}
+.fab .fab-z svg{width:40px;height:40px}
 .fab .fab-done{position:absolute;right:-2px;top:-2px;width:20px;height:20px;border-radius:50%;background:var(--weiz-gold);color:#3A2700;font-size:12px;font-weight:700;display:none;place-items:center;border:2px solid #2C2C32}
 .fab.done .fab-done{display:grid}
 .fab .fab-tip{position:absolute;right:66px;top:50%;transform:translateY(-50%);background:#fff;color:#1F1F24;font-size:13px;font-weight:700;padding:8px 12px;border-radius:12px 12px 2px 12px;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .25s}
 .fab.show-tip .fab-tip{opacity:1}
-.fab:hover{background:var(--weiz-indigo-600)}
+.fab:hover{background:#F2F2FF}
 .fab:not(.done){animation:fabIn .4s var(--ease) both,fabPulse 2.4s ease-in-out 1s 3}
 @keyframes fabIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
 @keyframes fabPulse{0%,100%{box-shadow:0 0 0 3px #2C2C32,0 0 0 5px var(--weiz-gold),0 10px 26px rgba(93,89,255,.45)}50%{box-shadow:0 0 0 3px #2C2C32,0 0 0 9px rgba(252,170,7,.55),0 10px 30px rgba(93,89,255,.6)}}
 @media(min-width:560px){.fab{right:calc(50% - 240px + 14px)}}
-#offerModal .box{padding:12px;gap:8px}
+#offerModal .box{padding:12px;gap:8px;position:relative}
+.modal-x{position:absolute;right:6px;top:6px;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--muted);z-index:2;background:rgba(0,0,0,.25)}
+.modal-x svg{width:18px;height:18px}
+.modal-x:hover{color:#fff;background:rgba(0,0,0,.4)}
+#offerModal .lead-card h2{padding-right:36px}
 #offerModal .lead-card{margin:0}
 .challenge-note{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:13px;background:rgba(255,255,255,.08);border:1px solid var(--silver-dim);border-radius:999px;padding:5px 12px;color:var(--muted)}
 .confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:2}
@@ -487,7 +492,7 @@ body.paused .orb,body.paused .marquee .track,body.paused .mascot-wrap img,body.p
   <div class="actions" id="ownerActions">
     <a class="btn btn-line" id="lineBtn" href="#" target="_blank" rel="noopener"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.4 7.2 8 7.9.3.1.7.2.8.5.1.2.1.6 0 .9l-.1.8c0 .3-.2 1 .9.5s5.9-3.5 8-5.9C21.3 14 22 12.6 22 11c0-4.4-4.5-8-10-8z"/></svg>挑戰LINE 好友</a>
     <button class="btn btn-primary" id="cardBtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>取得專屬數位年齡證書</button>
-    <button class="btn btn-outline" id="shareBtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13"/></svg>分享到 Threads／IG／FB</button>
+    <button class="btn btn-outline" id="shareBtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13"/></svg>分享挑戰！</button>
   </div>
   <div class="actions" id="guestActions" style="display:none">
     <button class="btn btn-primary" id="challengeBtn">換我測，看誰比較老</button>
@@ -544,15 +549,15 @@ body.paused .orb,body.paused .marquee .track,body.paused .mascot-wrap img,body.p
   <button class="btn btn-ghost" id="sheetClose">關閉</button>
 </div></div>
 <!-- 右下角懸浮 Z 圓標：領取 WEiZ 專屬優惠（結果頁本人才顯示） -->
-<button class="fab" id="offerFab" aria-label="領取 WEiZ 專屬優惠" hidden><span class="fab-tip" id="offerTip">領取 WEiZ 專屬優惠</span><span class="fab-z" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M9 10h22v5L18 30h13v5H8v-5l13-15H9z" fill="currentColor"/></svg></span><span class="fab-done" aria-hidden="true">✓</span></button>
+<button class="fab" id="offerFab" aria-label="領取 WEiZ 專屬優惠" hidden><span class="fab-tip" id="offerTip">領取 WEiZ 專屬優惠</span><span class="fab-z" aria-hidden="true"><svg viewBox="280 280 680 680" aria-hidden="true"><path fill="#5D59FF" d="M312 312h618l-192 388h-83l170-360H325z"/><path fill="#333333" d="M352 395h418L650 720h185l60 130H470l130-325H420z"/><path fill="#5D59FF" d="M505 548h85L415 905h500l15 30H312z"/></svg></span><span class="fab-done" aria-hidden="true">✓</span></button>
 <div class="modal sheet" id="offerModal" role="dialog" aria-modal="true" aria-labelledby="offerTitle"><div class="box">
+  <button class="modal-x" id="offerClose" aria-label="關閉"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   <div class="card lead-card" id="leadCard" style="animation:none">
     <h2 id="offerTitle">🎁 領取 WEiZ 專屬優惠</h2>
     <p>測完才有的隱藏版限時折扣碼。留下 Email，折扣碼寄到你信箱，全台平均數位年齡統計出來也第一個通知你。</p>
     <form class="field" id="leadForm" autocomplete="on" novalidate><input type="email" id="leadEmail" name="email" placeholder="你的 Email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" enterkeyhint="send"><button type="submit" class="btn btn-primary" id="leadBtn">領折扣碼</button></form>
     <label class="consent"><input type="checkbox" id="leadConsent" checked><span>我同意 WEiZ（汯錡國際）依<a href="https://www.weiz.com.tw/pages/privacy" target="_blank" rel="noopener">隱私權政策</a>使用此 Email 寄送折扣碼、測驗結果與品牌資訊，可隨時回信取消。</span></label>
   </div>
-  <button class="btn btn-ghost" id="offerClose">先不用</button>
 </div></div>
 <div class="modal" id="leaveModal" role="dialog" aria-modal="true" aria-labelledby="leaveTitle"><div class="box"><h2 id="leaveTitle">要離開這一輪挑戰嗎？</h2><p>離開後本輪作答進度不會保留。</p><div class="row"><button class="btn btn-primary" id="stayBtn">繼續作答</button><button class="btn btn-outline" id="leaveBtn">離開挑戰</button></div></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite">已複製結果，貼到社群分享吧</div>
@@ -578,7 +583,7 @@ const COUNTER_PER_HOUR = 31;                          // 平均每小時成長
 const COUNTER_WAVE = 80;                              // 日夜起伏幅度（保證仍單調遞增）
 const QUIZ_VERSION = '2026-09-12.v1';  // 題庫版本（寫入結果與事件）
 const SCORE_VERSION = 'v1';             // 計分版本（新公式待確認後才會升版）
-const LINE_OA_URL = "https://www.weiz.com.tw/customer/auth/line?line_action=line_login"; // Gary 提供：WEiZ 官網 LINE 登入／綁定入口（若有 lin.ee 加好友連結可替換）
+const LINE_OA_URL = "https://lin.ee/N50PvtRt"; // WEiZ LINE 官方帳號加好友連結（Gary 提供）
 const OFFER_FAB = true;                  // Email 名單改為右下角 Z 圓標懸浮按鈕（結果頁本人顯示），點開才出現表單
 const TEST_MODE = new URLSearchParams(location.search).get('test') === '1'; // 測試事件標記，與正式報表區分
 const MARQUEE_TERMS = ['MSN','ICQ','B.B. Call','無名小站','偷菜','Foxy','Wii','iPod','燒光碟','撥接上網','Facebook','LINE','Instagram','TikTok','ChatGPT'];
