@@ -10,7 +10,7 @@ if os.environ.get('QUIZ_OFFLINE'):
     async def _nc(self, **kw):
         ctx = await _orig_nc(self, **kw)
         async def _stub(route):
-            if 'script.google.com' in route.request.url: await route.fulfill(status=200, body='{"count":0,"mean":0,"sd":0}', content_type='application/json', headers={'Access-Control-Allow-Origin':'*'})
+            if 'script.google.com' in route.request.url: await route.fulfill(status=200, body=('{"ok":true,"receipt_id":"stub1234"}' if route.request.method=='POST' else '{"count":0,"mean":0,"sd":0}'), content_type='application/json', headers={'Access-Control-Allow-Origin':'*'})
             else: await route.fulfill(status=200, body='', content_type='text/css')
         await ctx.route(re.compile(r'https://(fonts\.googleapis\.com|fonts\.gstatic\.com|www\.googletagmanager\.com|script\.google\.com)/.*'), _stub)
         return ctx
@@ -170,9 +170,9 @@ async def main():
         for dec, rule, expect in cases:
             ctx, pg, errs = await fresh(b); await to_quiz(pg, dec)
             await answer_all(pg, rule); await pg.wait_for_timeout(4800)
-            r = await pg.evaluate("({screen:document.querySelector('.screen.active').id, age:+document.querySelector('#rAge').textContent, title:document.querySelector('#rTitle').textContent, gap:document.querySelector('#rGap').textContent, quip:document.querySelector('#rQuip').textContent, rank:document.querySelector('#rRank').textContent, hash:location.hash, pin:document.querySelector('#rPin').style.left, right:lastResult.s.rightN})")
+            r = await pg.evaluate("({screen:document.querySelector('.screen.active').id, age:+document.querySelector('#rAge').textContent, title:document.querySelector('#rTitle').textContent, gap:document.querySelector('#rGap').textContent, quip:document.querySelector('#rQuip').textContent, rank:'n/a', kw:document.querySelector('#rKeywords').textContent, tip:document.querySelector('#tipBody').textContent, hash:location.hash, pin:document.querySelector('#rPin').style.left, right:lastResult.s.rightN})")
             g = 'younger' if '年輕' in r['gap'] else 'older' if '老了' in r['gap'] else 'match'
-            ok = r['screen']=='result' and r['age']>0 and r['title'] and r['quip'] and '%' in r['rank'] and r['hash'].startswith('#a=') and (g==expect or expect.startswith('none'))
+            ok = r['screen']=='result' and r['age']>0 and r['title'] and r['quip'] and '%' not in r['kw'] and '本輪科技關鍵字' in r['kw'] and len(r['tip'])>10 and r['hash'].startswith('#a=') and (g==expect or expect.startswith('none'))
             rec('D 結果', f'D 年代{dec}／{rule}：結果頁完整、落差方向={g}', ok, f"age={r['age']} {r['title']} 「{r['gap']}」 right={r['right']}")
             if rule=='right': rec('D 結果', 'D 全對觸發限定成就（金色 Hero＋徽章）', r['title']=='全時代通才' and await pg.evaluate("document.querySelector('.result-hero').classList.contains('legend') && document.querySelector('#legendBadge').style.display!=='none'"))
             if rule=='wrong': rec('D 結果', 'D 全錯→數位隱士、不除以零', r['title']=='數位隱士' and r['age']==36, f"age={r['age']}")
@@ -181,26 +181,35 @@ async def main():
         ctx, pg, errs = await fresh(b)
         chk = await pg.evaluate("""(()=>{ decade=2; quiz=BANK.filter(q=>[1,2,11,21,31,41].includes(q.id)); answers=quiz.map(q=>({q,chosen:q.answer,correct:true,timedOut:false})); const s=score(); let w=0,ws=0; quiz.forEach(q=>{w+=q.difficulty;ws+=q.year*q.difficulty}); const exp=Math.round(20+(2026-ws/w)); return {age:s.age, exp, center:s.centerYear, expCenter:Math.round(ws/w)}; })()""")
         rec('D 結果', 'D 計分公式：年齡＝20＋(2026−難度加權平均年)', chk['age']==chk['exp'] and chk['center']==chk['expCenter'], str(chk))
-        pct = await pg.evaluate("[youngerThan(20), youngerThan(33), youngerThan(50)]")
-        rec('D 結果', 'D 百分位單調遞減且在 1–99', pct[0]>pct[1]>pct[2] and all(1<=x<=99 for x in pct), str(pct))
+        rec('D 結果', 'D 結果頁不再顯示假設分布百分位', await pg.evaluate("!document.querySelector('#rRank') && !document.body.textContent.includes('的人年輕（推估）')"))
         await ctx.close()
 
         # ---------- E. 分享、朋友視角、對戰 ----------
         ctx, pg, errs = await fresh(b); await to_quiz(pg, 1); await answer_all(pg, 'new'); await pg.wait_for_timeout(4800)
         h = await pg.evaluate("location.hash"); my_age = await pg.evaluate("lastResult.age")
-        await pg.click('#shareBtn'); await pg.wait_for_timeout(500)
+        await pg.click('#shareBtn'); await pg.wait_for_timeout(400)
+        sheet = await pg.evaluate("({shown:document.querySelector('#shareSheet').classList.contains('show'), pfs:[...document.querySelectorAll('#shareSheet .pf')].map(b=>b.lastChild.textContent.trim()), th:document.querySelector('[data-pf=threads]').href, fb:document.querySelector('[data-pf=facebook]').href, label:document.querySelector('#shareBtn').textContent.trim()})")
+        rec('E 分享', 'E1 「分享到 Threads／IG／FB」開平台面板：三平台＋系統分享，Threads／FB 連結帶 share_id', sheet['shown'] and sheet['label']=='分享到 Threads／IG／FB' and sheet['pfs']==['Threads','Instagram','Facebook','系統分享'] and sheet['th'].startswith('https://www.threads.net/intent/post?text=') and '%26s%3D' in sheet['th'] and sheet['fb'].startswith('https://www.facebook.com/sharer/sharer.php?u=') and '%26p%3Dfacebook' in sheet['fb'], str(sheet['pfs']))
+        await pg.click('#shareSheet [data-pf=copy_link]'); await pg.wait_for_timeout(300)
         clip = await pg.evaluate("navigator.clipboard.readText().catch(()=>'')")
-        rec('E 分享', 'E1 分享這個挑戰：無系統分享時複製文字＋挑戰連結', ('數位年齡' in clip) and ('#a=' in clip), clip[:80])
+        rec('E 分享', 'E1c 面板「複製連結」：挑戰連結含 #a= 與 s=／p= 歸因參數', ('#a=' in clip) and ('&s=' in clip) and ('&p=copy' in clip), clip[-60:])
+        await pg.click('#sheetClose'); await pg.wait_for_timeout(200)
         line = await pg.evaluate("document.querySelector('#lineBtn').href")
         rec('E 分享', 'E1b LINE 挑戰鈕：line.me/R/share 帶結果文字與 #a= 連結', line.startswith('https://line.me/R/share?text=') and '%23a%3D' in line, line[:60])
         await pg.click('#cardBtn'); await pg.wait_for_timeout(1500)
         cv = await pg.evaluate("(()=>{const c=document.getElementById('shareCanvas'); const d=c.getContext('2d').getImageData(540,600,1,1).data; return {w:c.width,h:c.height,shown:document.getElementById('cardprev').classList.contains('show'), px:[...d]}})()")
         rec('E 分享', 'E2 直式證書 1080×1920 產生並預覽、檔名帶年齡', cv['w']==1080 and cv['h']==1920 and cv['shown'] and sum(cv['px'][:3])>0 and await pg.evaluate("cardBlob && cardBlob.size>10000 && certFileName(lastResult)===`WEiZ_數位年齡證書_${lastResult.age}歲.png`"), str(cv))
+        btns = await pg.evaluate("[...document.querySelectorAll('#cardprev .row .btn')].map(b=>b.textContent.trim())")
+        rec('E 分享', 'E2b 證書預覽按鈕：儲存證書／曬證書到 Threads／IG／FB／複製分享文案／關閉', btns==['儲存證書','曬證書到 Threads／IG／FB','複製分享文案','關閉'], str(btns))
+        await pg.click('#copyCaptionBtn'); await pg.wait_for_timeout(300)
+        cap = await pg.evaluate("navigator.clipboard.readText().catch(()=>'')")
+        rec('E 分享', 'E2c 曬證書文案：年齡、稱號、關鍵字、邀請 CTA、連結、#WEiZ數位年齡挑戰', all(k in cap for k in ['我的數位年齡是','稱號是','本輪科技關鍵字','換你來測','#a=','#WEiZ數位年齡挑戰']), cap[:60])
         await pg.click('#closeCardBtn'); await pg.wait_for_timeout(200)
         rec('E 分享', 'E3 圖卡可關閉', not await pg.evaluate("document.getElementById('cardprev').classList.contains('show')"))
         await pg.reload(); await pg.wait_for_timeout(800)
         own = await pg.evaluate("({whose:document.querySelector('#rWhose').textContent, owner:document.querySelector('#ownerActions').style.display!=='none', lead:document.querySelector('#leadCard').style.display!=='none', review:document.querySelectorAll('#rReview .rv').length, age:+document.querySelector('#rAge').textContent})")
-        rec('E 分享', 'E3b 本人在結果頁重新整理仍是本人視角（分享／證書／名單卡／回顧都在）', own['whose']=='你的數位年齡' and own['owner'] and own['lead'] and own['review']==15 and own['age']==my_age, str(own))
+        own['tip'] = await pg.evaluate("document.querySelector('#tipCard').style.display!=='none'")
+        rec('E 分享', 'E3b 本人在結果頁重新整理仍是本人視角（分享／證書／小知識／回顧都在）', own['whose']=='你的數位年齡' and own['owner'] and own['tip'] and own['review']==15 and own['age']==my_age, str(own))
         await ctx.close()
         # 朋友視角
         ctx, pg, errs = await fresh(b, P+h)
@@ -211,6 +220,14 @@ async def main():
         vs = await pg.evaluate("({show:document.querySelector('#vsCard').style.display!=='none', me:document.querySelector('#vsMe .num').textContent, them:document.querySelector('#vsThem .num').textContent, line:document.querySelector('#vsLine').textContent, note:document.querySelector('#challengeNote').textContent, hash:location.hash})")
         rec('E 分享', 'E5 好友對戰卡：你 vs 朋友、勝負文案、挑戰註記、hash 帶 o=', vs['show'] and str(my_age) in vs['them'] and ('年輕' in vs['line'] or '老' in vs['line'] or '平手' in vs['line']) and str(my_age) in vs['note'] and f"&o={my_age}" in vs['hash'], f"{vs['me']} vs {vs['them']}｜{vs['line']}")
         await ctx.close()
+        # 推薦歸因：帶 s／p 的連結
+        ctx, pg, errs = await fresh(b, P+h+'&s=abc123defg&p=threads')
+        await pg.mouse.click(200, 300); await pg.wait_for_timeout(300)
+        await pg.click('#challengeBtn'); await pg.wait_for_timeout(300); await pg.click('#skipBtn'); await pg.wait_for_timeout(600)
+        ev = await pg.evaluate("dataLayer.filter(a=>a[0]==='event').map(a=>[a[1], a[2]&&a[2].share_id, a[2]&&a[2].platform_selected])")
+        names = [e[0] for e in ev]
+        rec('E 分享', 'E7 推薦連結 s／p：互動後 referral_visit、開始後 referral_start（帶 share_id 與平台）', 'referral_visit' in names and 'referral_start' in names and all(e[1]=='abc123defg' and e[2]=='threads' for e in ev if e[0].startswith('referral_')) and 'quiz_start' in names, str([e for e in ev if e[0].startswith('referral')]))
+        await ctx.close()
         # 壞 hash 不當機
         ctx, pg, errs = await fresh(b, P+'#a=abc&t=99&y=1')
         rec('E 分享', 'E6 無效 hash 落回首頁、無錯誤', await pg.evaluate("document.querySelector('.screen.active').id")=='home' and not errs)
@@ -218,6 +235,9 @@ async def main():
 
         # ---------- F. 名單 ----------
         ctx, pg, errs = await fresh(b); await to_quiz(pg, 2); await answer_all(pg, 'rand'); await pg.wait_for_timeout(4800)
+        rec('F 名單', 'F0 v4：Email 名單卡預設不在主流程；科技小知識卡有出現', await pg.evaluate("document.querySelector('#leadCard').style.display==='none' && document.querySelector('#tipCard').style.display!=='none' && document.querySelector('#tipBody').textContent.length>10"))
+        await ctx.close()
+        ctx, pg, errs = await fresh(b, P.replace('.html','.html?email=1')); await to_quiz(pg, 2); await answer_all(pg, 'rand'); await pg.wait_for_timeout(4800)
         await pg.fill('#leadEmail', 'not-an-email'); await pg.click('#leadBtn'); await pg.wait_for_timeout(200)
         t1 = await pg.evaluate("document.querySelector('#toast').textContent")
         rec('F 名單', 'F1 Email 格式錯誤被擋', '格式' in t1 and await pg.evaluate("!!document.querySelector('#leadBtn')"))
@@ -230,7 +250,7 @@ async def main():
         pg.on('console', _grab)
         pg.on('request', lambda r: logs.append(r.post_data) if r.method=='POST' and r.post_data and '"email"' in r.post_data else None)  # 已設 LEAD_ENDPOINT：抓送出的 POST 內容
         await pg.click('#leadBtn'); await pg.wait_for_timeout(400)
-        rec('F 名單', 'F3 送出成功顯示「收到了」、payload 含 email／年齡／出生年代', '收到了' in await pg.evaluate("document.querySelector('#leadCard').textContent") and any('gary@weiz.com.tw' in l and '1980' in l for l in logs), (logs[0][:120] if logs else 'no log'))
+        rec('F 名單', 'F3 後端回 ok 才顯示「收到了」（含收件編號）、payload 含 email／年齡／出生年代', '收到了' in await pg.evaluate("document.querySelector('#leadCard').textContent") and '收件編號' in await pg.evaluate("document.querySelector('#leadCard').textContent") and any('gary@weiz.com.tw' in l and '1980' in l for l in logs), (logs[0][:120] if logs else 'no log'))
         await ctx.close()
 
         # ---------- G. 掃描動畫與結果音效 ----------
