@@ -514,8 +514,8 @@ body{background:var(--weiz-gray-50)}
 const NOW_YEAR = 2026, BASE_AGE = 20, PER_ERA = 3;
 const SECONDS_BY_LEN = q => 15; // 每題固定 15 秒
 const FEEDBACK_DWELL = 1100;   // 即時反饋停留毫秒
-const LEAD_ENDPOINT = "";   // 名單（含 Email）
-const STATS_ENDPOINT = "";  // 匿名結果回傳與統計（GET 回 {count,mean,sd}；POST 收結果）
+const LEAD_ENDPOINT = "https://script.google.com/macros/s/AKfycbz5bqa3zpU6ZQz-ufubzrjj0DXfat-eYl0Y72RVU_YNXuBkwm0uvQsaFiFOtbR0zada9A/exec";   // 名單（含 Email）
+const STATS_ENDPOINT = "https://script.google.com/macros/s/AKfycbz5bqa3zpU6ZQz-ufubzrjj0DXfat-eYl0Y72RVU_YNXuBkwm0uvQsaFiFOtbR0zada9A/exec";  // 匿名結果回傳與統計（GET 回 {count,mean,sd}；POST 收結果）
 const REAL_STATS_MIN = 500;  // 累積幾筆後改用真實分布
 // A/B：即時反饋 vs 不顯示對錯。網址 ?v=instant 或 ?v=silent 可強制；否則隨機分派並記進 GA
 // ===== 部署設定（上線前只需改這一區）=====
