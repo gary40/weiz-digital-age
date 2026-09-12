@@ -65,8 +65,8 @@ async def main():
         rec('A 載入', 'A10 重新整理後保留音效設定（關閉）', await pg.evaluate("soundMode")==0)
         lk = await pg.evaluate("[...document.querySelectorAll('.topbar .logo-link')].map(a=>[a.href.startsWith('https://www.weiz.com.tw/?utm_source=social'), a.target==='_blank'])")
         rec('A 載入', 'A11 五個畫面的頂欄 Logo 都連到 WEiZ 商城（同一組 UTM、新分頁）', len(lk)==5 and all(a and b for a,b in lk), str(lk))
-        hi = await pg.evaluate("[document.querySelector('#mascotHi').classList.contains('show'), document.querySelector('#mascotHi').textContent, getComputedStyle(document.querySelector('#startBtn')).animationName]")
-        rec('A 載入', 'A12 首頁威比對話框常駐、開始挑戰有動態', hi[0] and hi[1]=='Hi 我是威比 WEIBE！' and 'glowPulse' in hi[2], str(hi))
+        hi = await pg.evaluate("[document.querySelector('#mascotHi').classList.contains('show'), document.querySelector('#mascotHi .hi-ghost').textContent, getComputedStyle(document.querySelector('#startBtn')).animationName]")
+        rec('A 載入', 'A12 首頁威比對話框常駐、開始挑戰有動態', hi[0] and hi[1].replace('\n',' ')=='Hi 我是威比 WEIBE！' and 'glowPulse' in hi[2], str(hi))
         await ctx.close()
 
         # ---------- B. 出生年代與抽題 ----------

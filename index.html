@@ -115,10 +115,15 @@ h1{font-size:30px;font-weight:700;line-height:1.2;letter-spacing:-.02em;text-sha
 .mascot-wrap img{width:100%;animation:float 4s ease-in-out infinite}
 .mascot-wrap.boop img{animation:jump .5s var(--ease)}
 .mascot-wrap .glow{position:absolute;left:10%;right:10%;bottom:4px;height:22px;border-radius:50%;background:radial-gradient(closest-side,rgba(252,170,7,.55),transparent);filter:blur(6px);pointer-events:none}
-.mascot-wrap .hi{position:absolute;right:76%;top:2px;width:max-content;max-width:172px;background:var(--weiz-indigo-500);color:#fff;font-size:12px;font-weight:600;line-height:1.35;padding:7px 10px;border-radius:12px 12px 2px 12px;text-align:left;opacity:0;transition:opacity .2s;pointer-events:none;box-shadow:0 6px 18px rgba(93,89,255,.4);transform-origin:100% 100%}
+.mascot-wrap .hi{position:absolute;left:86%;top:46%;width:max-content;max-width:132px;background:var(--weiz-indigo-500);color:#fff;font-size:12px;font-weight:600;line-height:1.4;padding:7px 10px;border-radius:12px 12px 12px 2px;text-align:left;opacity:0;transition:opacity .2s;pointer-events:none;box-shadow:0 6px 18px rgba(93,89,255,.4);transform-origin:0 100%;white-space:pre-line}
 .mascot-wrap .hi.show{opacity:1}
 .mascot-wrap .hi.pop{animation:hiPop .5s var(--ease)}
-@keyframes hiPop{0%{transform:scale(.5) translateY(8px);opacity:0}60%{transform:scale(1.08)}100%{transform:none;opacity:1}}
+.mascot-wrap .hi .hi-ghost{visibility:hidden}
+.mascot-wrap .hi .hi-txt{position:absolute;left:10px;top:7px;right:10px;bottom:7px}
+.mascot-wrap .hi .hi-txt.typing::after{content:'▍';margin-left:1px;animation:caret .8s steps(1) infinite;color:#FFE7A3}
+@keyframes caret{50%{opacity:0}}
+@media(max-width:360px){.mascot-wrap .hi{max-width:104px;font-size:11px}}
+@keyframes hiPop{0%{transform:scale(.5) translateY(8px);opacity:0}60%{transform:scale(1.06)}100%{transform:none;opacity:1}}
 @keyframes float{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-7px) rotate(1deg)}}
 @keyframes jump{0%{transform:translateY(0)}40%{transform:translateY(-14px) rotate(-6deg)}100%{transform:translateY(0)}}
 /* 單排跑馬燈 */
@@ -466,7 +471,9 @@ body.paused .btn-glow,body.paused .btn-glow::after,body.paused .btn-glow svg,bod
     <span class="eyebrow pixel">Ready to play</span>
     <h1>你的<b>數位年齡</b><br>是幾歲？</h1>
     <p class="lead">從撥接聲到 AI，15 題直覺快答，看你的科技記憶停在哪一年。</p>
-    <button class="mascot-wrap" id="mascotBtn" aria-label="威比，點一下打招呼"><span class="glow"></span><img class="wb" data-asset="m_selfie" src="" alt=""><span class="hi" id="mascotHi">Hi 我是威比 WEIBE！</span></button>
+    <button class="mascot-wrap" id="mascotBtn" aria-label="威比，點一下打招呼"><span class="glow"></span><img class="wb" data-asset="m_selfie" src="" alt=""><span class="hi" id="mascotHi"><span class="hi-ghost" aria-hidden="true">Hi 我是威比
+WEIBE！</span><span class="hi-txt">Hi 我是威比
+WEIBE！</span></span></button>
     <div class="marquee-wrap">
       <div class="marquee" id="marquee" aria-label="科技名詞跑馬燈"><div class="track" id="mqTrack"></div></div>
       <button class="mq-btn" id="mqBtn" aria-label="暫停跑馬燈" aria-pressed="false"></button>
@@ -560,7 +567,7 @@ body.paused .btn-glow,body.paused .btn-glow::after,body.paused .btn-glow svg,bod
 
   <div class="result-body">
     <div class="card tip-card" id="tipCard">
-      <div class="tip-head"><img class="wb" data-asset="m_read" src="" alt=""><div><h2>威比科技小知識</h2><p class="tip-sub" id="tipSub">每 5 秒換一則，點一下可暫停</p></div><span class="tip-count" id="tipCount" aria-hidden="true"></span></div>
+      <div class="tip-head"><img class="wb" data-asset="m_read" src="" alt=""><div><h2>威比科技小知識</h2><p class="tip-sub" id="tipSub" hidden></p></div><span class="tip-count" id="tipCount" aria-hidden="true"></span></div>
       <div class="tip-viewport" id="tipViewport" role="region" aria-label="小知識輪播" aria-live="polite"></div>
       <a class="oa-cta" id="oaCard" href="#" target="_blank" rel="noopener" style="display:none">
         <span class="oa-icon"><svg class="line-logo" aria-hidden="true"><use href="#lineLogo"/></svg></span>
@@ -708,11 +715,19 @@ function draw(){
   const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>', ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
   const paint = () => { const p = mq.classList.contains('paused'); btn.innerHTML = p ? ICON_PLAY : ICON_PAUSE; btn.setAttribute('aria-label', p ? '播放跑馬燈' : '暫停跑馬燈'); btn.setAttribute('aria-pressed', String(p)); };
   btn.addEventListener('click', () => { mq.classList.toggle('paused'); paint(); }); paint();
-  const HI = ['Hi 我是威比 WEIBE！','來測測你的科技記憶 👀','15 題直覺快答，很快的','答錯不扣分，只是會變老 😏','測完有 WEiZ 限定優惠券 🎁'];
-  const hiEl = $('#mascotHi'); let hiIdx = 0;
-  const sayHi = () => { hiEl.textContent = HI[hiIdx % HI.length]; hiEl.classList.remove('pop'); void hiEl.offsetWidth; hiEl.classList.add('pop'); };
+  const HI = ['Hi 我是威比\nWEIBE！','來測測你的\n科技記憶 👀','15 題直覺快答\n很快的','答錯不扣分\n只是會變老 😏','測完有 WEiZ\n限定優惠券 🎁']; // \n 為刻意換行
+  const hiEl = $('#mascotHi'), hiGhost = hiEl.querySelector('.hi-ghost'), hiTxt = hiEl.querySelector('.hi-txt'); let hiIdx = 0, hiTimer = null;
+  const noMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // 逐字打字：先用隱形整句撐出框的大小，再一字一字顯示，框不會邊打邊跳
+  const sayHi = () => {
+    const s = HI[hiIdx % HI.length]; clearInterval(hiTimer); hiGhost.textContent = s;
+    hiEl.classList.remove('pop'); void hiEl.offsetWidth; hiEl.classList.add('pop');
+    if (noMotion) { hiTxt.textContent = s; return; }
+    let n = 0; hiTxt.textContent = ''; hiTxt.classList.add('typing');
+    hiTimer = setInterval(() => { n++; hiTxt.textContent = [...s].slice(0, n).join(''); if (n >= [...s].length) { clearInterval(hiTimer); hiTxt.classList.remove('typing'); } }, 70);
+  };
   sayHi(); hiEl.classList.add('show');
-  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) setInterval(() => { if (document.hidden || currentScreen()!=='home') return; hiIdx++; sayHi(); }, 4000);
+  if (!noMotion) setInterval(() => { if (document.hidden || currentScreen()!=='home') return; hiIdx++; sayHi(); }, 4500);
   $('#mascotBtn').addEventListener('click', () => { const w = $('#mascotBtn'); hiIdx++; sayHi(); w.classList.remove('boop'); void w.offsetWidth; w.classList.add('boop'); sfx('tap'); buzz(8); setTimeout(() => w.classList.remove('boop'), 1600); });
 })();
 
