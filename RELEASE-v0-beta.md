@@ -135,6 +135,25 @@ Gary 於 Mac 以 GitHub 網頁建 repo `gary40/weiz-digital-age`，`git push --f
 
 ---
 
+## 9. v0-beta.1 調整（2026-09-12，依 Gary 回饋）
+
+| # | 原狀 | 調整後 | 為什麼改 |
+|---|---|---|---|
+| 1 | Email 欄位是單獨的 input | 包成 `<form>`、加 `name="email"`、`autocomplete="email"`、Enter 送出 | 瀏覽器（Safari／Chrome）只對表單內有 name 的欄位提供記憶 Email 自動帶入 |
+| 2 | 「想知道全台平均幾歲？」 | 「🎁 領 WEiZ 隱藏版限時折扣碼」、按鈕「領折扣碼」、送出後提示折扣碼會寄到信箱、同意文案加「折扣碼」 | 提高留 Email 意願。**注意：目前只把 Email 寫進試算表，沒有自動寄信；折扣碼需人工寄或另加 Apps Script 自動寄信** |
+| 3 | 「分享連結」（系統分享／複製） | 綠色全寬「LINE 一鍵傳給好友」（`line.me/R/share`，手機直接開 LINE 選好友）＋保留「複製連結」 | LINE 是主要擴散管道 |
+| 4 | 「產生結果圖卡」 | 「產生專屬：數位年齡報告書」；下載提示同步改「報告書已下載」 | 命名更有價值感 |
+| 5 | WEiZ 連結 `https://weiz.com.tw`（憑證錯誤） | `https://www.weiz.com.tw/?utm_source=social&utm_medium=game&utm_campaign=2026091201&utm_content=v1` | 修正憑證警告並帶 UTM |
+| 6 | 作答頁有 160px 關鍵字大框（開心農場 '09） | 移除；題目 24px 固定三行高、選項 124px、題目＋選項區塊在剩餘空間垂直置中，太空人貼底 | 版面更聚焦；三種手機尺寸（375×667／390×844／430×932）量測 10 題位置完全一致、無裁切 |
+
+驗收：Chromium 51／51（`report-chromium.txt`，`acceptance.py` C12 改量 `#eraTag`、F3 改抓 POST 內容、離線模式加擋 script.google.com）。截圖：`screenshots/08–11`。
+
+### 待 Gary 決定
+- **折扣碼怎麼寄**：A. 人工每週從試算表 `leads` 分頁匯出寄送；B. 我在 `Code.gs` 加 `MailApp.sendEmail`，收到 Email 立即自動寄一封含折扣碼的信（需提供折扣碼與信件文案，Apps Script 免費額度每日 100 封）。
+- 折扣碼本身（碼、折扣內容、期限）尚未提供，上線前請確認 Cyberbiz 已建好。
+
+---
+
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 AI 產出驗證區塊
@@ -150,7 +169,7 @@ Gary 於 Mac 以 GitHub 網頁建 repo `gary40/weiz-digital-age`，`git push --f
 ▸ 已驗證項目：Chromium 141 自動化 51／51；正式網址 curl 200（Gary）；Apps Script GET／POST（Gary 執行 verify-backend.sh）；GA4 gtag 載入與 finish 事件（沙箱模擬）；無聲音檔 duration 0.25 s 且 paused=false；
   再測一次後 location.search 保留；圖卡 blob 1.9 MB 預先產生、下載檔名正確；兩個 script 區塊語法檢查通過；
   commit hash 3c68b9c／813c3c1 取自 git log
-▸ 未確認項目／假設：WebKit 自動化結果；線上回歸；M1–M13 真機結果；
+▸ 未確認項目／假設：折扣碼寄送機制與內容（v0-beta.1 文案已承諾，需 Gary 補上）；WebKit 自動化結果；線上回歸；M1–M13 真機結果；
   B1／B3 修正在 iPhone 上的實際效果；LINE 分享預覽；50 題事實年份
 ▸ 風險分級：☑ B 對外發布（測驗將公開給測試者與社群）
 ▸ 建議審核人：Gary

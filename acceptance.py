@@ -9,8 +9,10 @@ if os.environ.get('QUIZ_OFFLINE'):
     _orig_nc = _B.new_context
     async def _nc(self, **kw):
         ctx = await _orig_nc(self, **kw)
-        async def _stub(route): await route.fulfill(status=200, body='', content_type='text/css')
-        await ctx.route(re.compile(r'https://(fonts\.googleapis\.com|fonts\.gstatic\.com|www\.googletagmanager\.com)/.*'), _stub)
+        async def _stub(route):
+            if 'script.google.com' in route.request.url: await route.fulfill(status=200, body='{"count":0,"mean":0,"sd":0}', content_type='application/json', headers={'Access-Control-Allow-Origin':'*'})
+            else: await route.fulfill(status=200, body='', content_type='text/css')
+        await ctx.route(re.compile(r'https://(fonts\.googleapis\.com|fonts\.gstatic\.com|www\.googletagmanager\.com|script\.google\.com)/.*'), _stub)
         return ctx
     _B.new_context = _nc
 P = sys.argv[1] if len(sys.argv)>1 else os.environ.get('QUIZ_URL','http://localhost:8080/index.html')
@@ -132,7 +134,7 @@ async def main():
         await pg.wait_for_timeout(500)  # 等進場動畫（screenIn／fade 約 .4s）結束再量，避免量到 transform 中的位置
         boxes = []
         for _ in range(10):
-            bb = await pg.evaluate("['#visual','#qText','#options','.quiz-foot'].map(s=>{const r=document.querySelector(s).getBoundingClientRect(); return [Math.round(r.top),Math.round(r.height)]})")
+            bb = await pg.evaluate("['#eraTag','#qText','#options','.quiz-foot'].map(s=>{const r=document.querySelector(s).getBoundingClientRect(); return [Math.round(r.top),Math.round(r.height)]})")
             boxes.append(bb); await pg.evaluate("clearInterval(timerId); idx++; render()"); await pg.wait_for_timeout(450)
         stable = all(b_==boxes[0] for b_ in boxes)
         rec('C 作答', 'C12 版面固定：10 題視覺區／題目／選項／頁尾位置完全一致', stable, str(boxes[0]) if stable else str(boxes[:3]))
@@ -196,8 +198,9 @@ async def main():
         await pg.evaluate("document.querySelector('#leadConsent').checked=true")
         logs = []
         async def _grab(m):
-            if '[lead]' in m.text: logs.append(json.dumps([await a.json_value() for a in m.args], ensure_ascii=False))  # console 文字預覽會截斷物件，改讀完整參數
+            if '[lead]' in m.text: logs.append(json.dumps([await a.json_value() for a in m.args], ensure_ascii=False))  # 未設 LEAD_ENDPOINT：讀 console 完整參數（文字預覽會截斷物件）
         pg.on('console', _grab)
+        pg.on('request', lambda r: logs.append(r.post_data) if r.method=='POST' and r.post_data and '"email"' in r.post_data else None)  # 已設 LEAD_ENDPOINT：抓送出的 POST 內容
         await pg.click('#leadBtn'); await pg.wait_for_timeout(400)
         rec('F 名單', 'F3 送出成功顯示「收到了」、payload 含 email／年齡／出生年代', '收到了' in await pg.evaluate("document.querySelector('#leadCard').textContent") and any('gary@weiz.com.tw' in l and '1980' in l for l in logs), (logs[0][:120] if logs else 'no log'))
         await ctx.close()

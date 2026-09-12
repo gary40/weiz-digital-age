@@ -285,11 +285,7 @@ body{background:var(--weiz-gray-50)}
 @media(prefers-reduced-motion:reduce){.orb,#home .mascot,.chip,.btn-primary::after,.timer.hot,.result-hero .mascot,.ruler .pin em{animation:none!important}}
 
 /* v6：作答頁豐富度 */
-.visual{position:relative;height:190px;border-radius:var(--r-card);overflow:hidden;margin:6px 0 var(--sp-05);background:linear-gradient(135deg,var(--et),#fff);border:1px solid var(--color-border);display:grid;place-items:center;animation:fade .4s var(--ease) both}
-.visual .yr{position:absolute;right:14px;bottom:-14px;font-size:96px;font-weight:700;letter-spacing:-.05em;color:var(--ec);opacity:.12;line-height:1;font-variant-numeric:tabular-nums}
-.visual .emo{font-size:88px;line-height:1;filter:drop-shadow(0 8px 16px rgba(51,51,51,.15));animation:emoIn .5s var(--ease) both}
 @keyframes emoIn{from{opacity:0;transform:scale(.6) rotate(-8deg)}to{opacity:1;transform:none}}
-.visual .lbl{position:absolute;left:12px;top:10px;font-size:11px;font-weight:500;color:var(--ec);background:rgba(255,255,255,.85);padding:3px 8px;border-radius:999px}
 .qtext{font-size:20px;min-height:0}
 .opt{min-height:92px}
 #quiz .opt.picked{transition:none}
@@ -312,6 +308,9 @@ body{background:var(--weiz-gray-50)}
 /* 圖卡 */
 .share-block{grid-template-columns:1fr 1fr}
 .share-block .btn.full{grid-column:1/-1}
+.btn-line{background:#06C755;color:#fff;box-shadow:0 8px 24px rgba(6,199,85,.28);text-decoration:none;font-weight:700}
+.btn-line:hover{background:#05B34C}
+.btn-line:active{transform:scale(.985)}
 .cardprev{display:none;position:fixed;inset:0;z-index:20;background:rgba(51,51,51,.7);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:var(--sp-1)}
 .cardprev.show{display:flex}
 .cardprev .inner{background:#fff;border-radius:var(--r-card);padding:var(--sp-05);max-width:360px;width:100%;display:grid;gap:10px;animation:screenIn .3s var(--ease)}
@@ -352,13 +351,13 @@ body{background:var(--weiz-gray-50)}
 .music.sfx{color:var(--weiz-gray-900)}
 
 /* v8 固定版面 */
-.visual{height:160px;background:linear-gradient(135deg,var(--et),#fff 70%);}
-.visual::after{content:'';position:absolute;inset:0;background-image:radial-gradient(currentColor 1px,transparent 1px);background-size:14px 14px;opacity:.08;color:var(--ec);z-index:0}
-.visual .kw{position:relative;z-index:1;font-size:32px;font-weight:700;color:var(--ec);letter-spacing:-.01em;text-align:center;padding:0 20px;animation:fade .4s var(--ease) both}
-.visual .lbl,.visual .yr{z-index:1}
-.qtext{min-height:2.7em;display:flex;align-items:center}   /* 固定兩行高度，長短題不跳動 */
-.options{grid-auto-rows:104px}
-.opt{min-height:0;height:104px;overflow:hidden;padding:10px 14px;gap:6px;font-size:16px;line-height:1.3}
+#quiz .era-tag{margin:auto 0 4px}   /* 題目＋選項區塊在剩餘空間垂直置中（上下 auto），矮螢幕自動貼齊 */
+.qtext{font-size:24px;line-height:1.4;min-height:3.4em;display:flex;align-items:center}   /* 固定三行高度，長短題不跳動 */
+.options{grid-auto-rows:124px;margin-top:var(--sp-05);margin-bottom:auto}
+#quiz .quiz-foot{margin-top:var(--sp-1)}
+.opt{min-height:0;height:124px;overflow:hidden;padding:14px 16px;gap:10px;font-size:17px;line-height:1.35}
+.opt .key{width:30px;height:30px;font-size:14px}
+.opt>span:last-child{-webkit-line-clamp:3}
 .opt>span:last-child{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .beta{position:fixed;left:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:5;font-size:12px;font-weight:500;color:#B97500;background:#FFF1D1;border:1px solid #FDD403;border-radius:999px;padding:6px 12px;text-decoration:none}
 @media(min-width:560px){.beta{left:calc(50% - 240px + 14px)}}
@@ -408,7 +407,6 @@ body{background:var(--weiz-gray-50)}
   </div>
   <div class="progress"><i id="prog"></i></div>
   <span class="era-tag" id="eraTag"></span>
-  <div class="visual" id="visual"><span class="lbl" id="vLbl"></span><span class="kw" id="vKw"></span><span class="yr" id="vYr"></span></div>
   <p class="qtext" id="qText"></p>
   <div class="options" id="options"></div>
   <div class="quiz-foot"><img id="qMascot" data-asset="m_ponder" src="" alt=""><div class="bubble" id="footMsg">點選答案後自動跳下一題</div></div>
@@ -446,8 +444,9 @@ body{background:var(--weiz-gray-50)}
   </div>
 
   <div class="share-block" id="ownerActions">
-    <button class="btn btn-primary" id="cardBtn">產生結果圖卡</button>
-    <button class="btn btn-ghost" id="shareBtn">分享連結</button>
+    <a class="btn btn-line full" id="lineBtn" href="#" target="_blank" rel="noopener"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.4 7.2 8 7.9.3.1.7.2.8.5.1.2.1.6 0 .9l-.1.8c0 .3-.2 1 .9.5s5.9-3.5 8-5.9C21.3 14 22 12.6 22 11c0-4.4-4.5-8-10-8z" fill="currentColor"/></svg>LINE 一鍵傳給好友</a>
+    <button class="btn btn-primary" id="cardBtn">產生專屬：數位年齡報告書</button>
+    <button class="btn btn-ghost" id="shareBtn">複製連結</button>
   </div>
   <div class="share-block" id="guestActions" style="display:none">
     <button class="btn btn-primary" id="challengeBtn">換我測，看誰比較老</button>
@@ -469,10 +468,10 @@ body{background:var(--weiz-gray-50)}
     </div>
 
     <div class="card lead-card" id="leadCard">
-      <h2>想知道全台平均幾歲？</h2>
-      <p>留下 Email，統計出來第一時間寄給你，順便通知下一場測驗。</p>
-      <div class="field"><input type="email" id="leadEmail" placeholder="你的 Email" autocomplete="email" inputmode="email"><button class="btn btn-primary" id="leadBtn">我要</button></div>
-      <label class="consent"><input type="checkbox" id="leadConsent" checked>我同意 WEiZ（汯錡國際）依隱私權政策使用此 Email 寄送測驗結果與品牌資訊，可隨時取消訂閱。</label>
+      <h2>🎁 領 WEiZ 隱藏版限時折扣碼</h2>
+      <p>測完才有的專屬優惠。留下 Email，折扣碼寄到你信箱，全台平均數位年齡統計出來也第一個通知你。</p>
+      <form class="field" id="leadForm" autocomplete="on" novalidate><input type="email" id="leadEmail" name="email" placeholder="你的 Email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" enterkeyhint="send"><button type="submit" class="btn btn-primary" id="leadBtn">領折扣碼</button></form>
+      <label class="consent"><input type="checkbox" id="leadConsent" checked>我同意 WEiZ（汯錡國際）依隱私權政策使用此 Email 寄送折扣碼、測驗結果與品牌資訊，可隨時取消訂閱。</label>
     </div>
 
     <div class="card" id="detailCard"><details><summary>看我各年代的答對率</summary>
@@ -482,7 +481,7 @@ body{background:var(--weiz-gray-50)}
     <div class="card" id="reviewCard"><details><summary>回顧 15 題</summary><div class="review" id="rReview"></div></details></div>
 
     <button class="btn btn-ghost" id="againBtn">再測一次</button>
-    <p class="challenge">Z 世代的 3C 專家 <a href="https://weiz.com.tw" target="_blank" rel="noopener" style="color:var(--weiz-indigo-500);text-decoration:none;font-weight:500">WEiZ</a> 出品</p>
+    <p class="challenge">Z 世代的 3C 專家 <a href="https://www.weiz.com.tw/?utm_source=social&utm_medium=game&utm_campaign=2026091201&utm_content=v1" target="_blank" rel="noopener" style="color:var(--weiz-indigo-500);text-decoration:none;font-weight:500">WEiZ</a> 出品</p>
   </div>
 
   <details class="verify"><summary>📋 AI 產出驗證區塊（原型用，上線前移除）</summary>
@@ -519,7 +518,7 @@ const STATS_ENDPOINT = "https://script.google.com/macros/s/AKfycbz5bqa3zpU6ZQz-u
 const REAL_STATS_MIN = 500;  // 累積幾筆後改用真實分布
 // A/B：即時反饋 vs 不顯示對錯。網址 ?v=instant 或 ?v=silent 可強制；否則隨機分派並記進 GA
 // ===== 部署設定（上線前只需改這一區）=====
-const VERSION = 'v0-beta';
+const VERSION = 'v0-beta.1';
 const FEEDBACK_URL = "";     // 回饋表單網址（Google 表單），空字串則隱藏回饋鈕
 const GA_ID = "G-DSHJT72D4Z"; // GA4 評估 ID（資料串流：數位年齡測驗）；空字串不載入
 const AB_TEST = false;         // true 才會隨機分派 instant／silent 兩組；預設一律顯示解答
@@ -601,10 +600,6 @@ function render(){
   $('#eraTag').textContent = ERA_LABEL[q.era] + '・' + q.category;
   $('#quiz').style.setProperty('--ec', ERA_TEXT[q.era]); $('#quiz').style.setProperty('--et', ERA_COLOR[q.era][1]);
   $('#qText').textContent = q.q;
-  // 視覺區：有授權照片放照片，沒有就用 emoji＋年份水印
-  $('#vKw').textContent = q.kw || '';
-  $('#vYr').textContent = "'" + String(q.year).slice(2); $('#vLbl').textContent = ERA_LABEL[q.era];
-  $('#vKw').style.animation='none'; void $('#vKw').offsetWidth; $('#vKw').style.animation='';
   const qm = $('#qMascot'); qm.src = ASSETS.m_ponder; qm.classList.remove('jump');
   $('#footMsg').innerHTML = BUBBLES[Math.floor(Math.random()*BUBBLES.length)]; $('#footMsg').className = 'bubble';
   const box = $('#options'); box.innerHTML = '';
@@ -808,6 +803,7 @@ function paintResult(r, animate){
   $('#rRank').innerHTML = yt >= 50 ? `比 <b>${yt}%</b> 的人年輕` : `比 <b>${100-yt}%</b> 的人老`;
   $('#rWhose').textContent = r.guest ? '朋友的數位年齡' : '你的數位年齡'; $('#rWho2').textContent = r.guest ? '他的' : '你的';
   $('#ownerActions').style.display = r.guest ? 'none' : '';
+  if (!r.guest) $('#lineBtn').href = lineShareHref(r);
   $('#guestActions').style.display = r.guest ? '' : 'none';
   ['#leadCard','#detailCard','#reviewCard','#againBtn'].forEach(s => $(s).style.display = r.guest ? 'none' : '');
   // 限定成就：全時代通才
@@ -842,11 +838,13 @@ function fromHash(){
 }
 
 // ===== 分享 =====
+function shareText(r){ const g = gapInfo(r.age, r.d); return GAP_COPY[g.dir].share(r, g).replace(' 👇', `\n${quipOf(r)} 👇`); }
+function shareUrl(r){ return location.href.split('#')[0] + resultHash(r); }
+// LINE 一鍵分享：line.me/R/share 手機直接開 LINE 選好友，桌機開 LINE 網頁版
+function lineShareHref(r){ return 'https://line.me/R/share?text=' + encodeURIComponent(shareText(r) + '\n' + shareUrl(r)); }
 async function share(){
   if (!lastResult) return;
-  const g = gapInfo(lastResult.age, lastResult.d);
-  const text = GAP_COPY[g.dir].share(lastResult, g).replace(' 👇', `\n${quipOf(lastResult)} 👇`);
-  const url = location.href.split('#')[0] + resultHash(lastResult);
+  const text = shareText(lastResult), url = shareUrl(lastResult);
   track('share', {});
   if (navigator.share) { try { await navigator.share({ title:'WEiZ 數位年齡測驗', text, url }); return; } catch(e){ if (e.name==='AbortError') return; } }
   try { await navigator.clipboard.writeText(text+'\n'+url); toast('已複製，貼到 LINE 或 IG 限動吧'); } catch(e){ toast('請手動複製：'+text); }
@@ -862,9 +860,9 @@ async function submitLead(){
   try {
     if (LEAD_ENDPOINT) await fetch(LEAD_ENDPOINT, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload) });
     else console.log('[lead]', payload);
-    $('#leadCard').innerHTML = '<h2>收到了！</h2><p class="lead-done">統計出來就寄給你。先把測驗丟給朋友，看誰比較老。</p>';
+    $('#leadCard').innerHTML = '<h2>收到了！</h2><p class="lead-done">折扣碼會寄到你的信箱，記得看一下垃圾郵件匣。先把測驗丟給朋友，看誰比較老。</p>';
     track('lead', {});
-  } catch(e) { toast('送出失敗，再試一次'); $('#leadBtn').disabled = false; $('#leadBtn').textContent = '我要'; }
+  } catch(e) { toast('送出失敗，再試一次'); $('#leadBtn').disabled = false; $('#leadBtn').textContent = '領折扣碼'; }
 }
 // GA4 事件（有 gtag 才送）
 function track(ev, params){ try { window.gtag && gtag('event', ev, params); } catch(e){} }
@@ -992,10 +990,10 @@ async function drawCard(r){
 let cardBlob = null; // 圖卡畫好就先轉成 PNG blob，分享時才能在手勢有效期內同步呼叫 navigator.share（iOS Safari 需要）
 async function openCard(){ if (!lastResult) return; cardBlob = null; await drawCard(lastResult); $('#cardprev').classList.add('show'); track('card_open',{}); $('#shareCanvas').toBlob(b => { cardBlob = b; }, 'image/png'); }
 async function shareCardBlob(blob){
-  if (!blob) { toast('圖片還在產生，再按一次'); return; }
+  if (!blob) { toast('報告書還在產生，再按一次'); return; }
   const file = new File([blob], `weiz-digital-age-${lastResult.age}.png`, { type:'image/png' });
   if (navigator.canShare && navigator.canShare({ files:[file] })) { try { await navigator.share({ files:[file], title:'WEiZ 數位年齡測驗', text:'不服來測 👉 '+location.href.split('#')[0]+resultHash(lastResult) }); track('card_share',{}); return; } catch(e){ if (e.name==='AbortError') return; } }
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000); toast('圖片已下載，上傳限動吧'); track('card_download',{});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000); toast('報告書已下載，上傳限動吧'); track('card_download',{});
 }
 function saveCard(){
   if (cardBlob) return shareCardBlob(cardBlob);
@@ -1027,8 +1025,8 @@ $('#startBtn').addEventListener('click', start);
 $('#againBtn').addEventListener('click', start);
 $('#challengeBtn').addEventListener('click', start);
 $('#shareBtn').addEventListener('click', share);
-$('#leadBtn').addEventListener('click', submitLead);
-$('#leadEmail').addEventListener('keydown', e => { if (e.key==='Enter') submitLead(); });
+$('#lineBtn').addEventListener('click', () => track('share_line', {}));
+$('#leadForm').addEventListener('submit', e => { e.preventDefault(); submitLead(); }); // 用 <form> 讓瀏覽器願意自動帶入記憶的 Email
 document.addEventListener('keydown', e => {
   if (!$('#quiz').classList.contains('active')) return;
   const k = e.key.toUpperCase(); const i = 'ABCD'.indexOf(k) >= 0 ? 'ABCD'.indexOf(k) : ('1234'.indexOf(k));
