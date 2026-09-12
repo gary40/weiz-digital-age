@@ -521,7 +521,7 @@ const REAL_STATS_MIN = 500;  // 累積幾筆後改用真實分布
 // ===== 部署設定（上線前只需改這一區）=====
 const VERSION = 'v0-beta';
 const FEEDBACK_URL = "";     // 回饋表單網址（Google 表單），空字串則隱藏回饋鈕
-const GA_ID = "";            // GA4 評估 ID，例：G-XXXXXXX；空字串不載入
+const GA_ID = "G-DSHJT72D4Z"; // GA4 評估 ID（資料串流：數位年齡測驗）；空字串不載入
 const AB_TEST = false;         // true 才會隨機分派 instant／silent 兩組；預設一律顯示解答
 const FEEDBACK_MODE = (new URLSearchParams(location.search).get('v')) || (AB_TEST ? (Math.random()<.5 ? 'instant' : 'silent') : 'instant');
 const DIST_MEAN = 33, DIST_SD = 8; // 百分位用的假分布，正式上線改成真實統計
