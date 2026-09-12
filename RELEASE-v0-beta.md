@@ -1,12 +1,12 @@
 # RELEASE-v0-beta — WEiZ 數位年齡測驗
 
-> 文件版本：20260912_WEiZ營運_數位年齡測驗v0-beta發布報告_v1
+> 文件版本：20260912_WEiZ營運_數位年齡測驗v0-beta發布報告_v2（v1 為上線前版本）
 > 產出日期：2026-09-12｜狀態：⚠️ AI 產出・待人工審核（風險 B 對外發布，審核人 Gary）
 
 ## 結論（3 行）
 
 1. 程式已修完 7 項 iOS／Safari 相容問題，Chromium 自動化驗收 **51／51 通過**，未改任何題目、計分、稱號、文案。
-2. **尚未上線**：GitHub Pages 需要開新 repo（`weiz-digital-age`），這個工作階段的 GitHub 權限只到 `gary40/utm`，要 Gary 操作（第 5、6 節）。
+2. **已上線**：https://gary40.github.io/weiz-digital-age/ ，Apps Script 名單／統計與 GA4 皆已接上；回饋表單依 Gary 決定取消，改由 LINE 直接回饋。
 3. 真機測試 M1–M13 需要 Gary 在 Mac／iPhone 上跑；其中 M2（靜音鍵）、M8（分享面板）是這次修正的重點，請優先驗。
 
 ---
@@ -15,11 +15,11 @@
 
 | 項目 | 內容 |
 |---|---|
-| 正式網址 | **待確認**（建議 `https://gary40.github.io/weiz-digital-age/`，或 `https://age.weiz.com.tw`） |
-| Pages 部署時間 | 待部署 |
-| 程式所在 | repo `gary40/UTM`、分支 `claude/new-session-y5za96`、資料夾 `weiz-digital-age/` |
+| 正式網址 | https://gary40.github.io/weiz-digital-age/ |
+| Pages 部署時間 | 2026-09-12（台灣時間下午，Gary 於 Mac 以 git push 部署，Pages 由 main 分支根目錄發布） |
+| 程式所在 | 正式 repo `gary40/weiz-digital-age`（main）；備份同步於 `gary40/UTM` 分支 `claude/new-session-y5za96` 的 `weiz-digital-age/` |
 | 原始包 commit | `3c68b9c` v0-beta 原始包（未修改） |
-| 修正 commit | `813c3c1` iOS／Safari 相容修正與驗收腳本誤判修正 |
+| 修正 commit | `813c3c1` iOS／Safari 相容修正與驗收腳本誤判修正（UTM 分支）；正式 repo 上線設定 commit：`5a7f58d` og 網址、`5081db0` Apps Script 端點、`1e6aaee` GA4 |
 | 測試環境 | 雲端 Linux 沙箱、Chromium 141（Playwright 1.56）、手機視窗 390×844 @2x |
 
 ---
@@ -99,56 +99,39 @@ WebKit 預期可能 FAIL 且屬環境限制的項目：E1（剪貼簿權限）�
 
 ---
 
-## 5. 上線設定（需要 Gary，逐項）
+## 5. 上線設定（已完成）
 
-| 步驟 | 要做的事 | 完成後給我 |
+| 項目 | 狀態 | 備註 |
 |---|---|---|
-| 5-1 | Google 試算表 → 擴充功能 → Apps Script → 貼 `Code.gs` → 部署為網頁應用程式（執行身分：我；存取：任何人） | `/exec` 網址 |
-| 5-2 | 驗證：`curl -s "<網址>"` 應回 `{"count":0,"mean":0,"sd":0}`；再 POST 一筆測試結果（指令見 `CLAUDE_CODE_TASK.md` 第 5 節），GET 應 count=1，**驗完刪掉那列** | 驗證結果 |
-| 5-3 | Google 表單回饋（題目見 `README.md`） | 表單網址 |
-| 5-4 | GA4 評估 ID（可先空） | `G-XXXXXXX` 或「先不用」 |
-| 5-5 | 決定網址：`https://gary40.github.io/weiz-digital-age/` 或 `age.weiz.com.tw`（後者要在 Cloudflare 加 CNAME 指向 `gary40.github.io`） | 網址 |
+| Apps Script `/exec` | ✅ 已填 `LEAD_ENDPOINT`／`STATS_ENDPOINT` | `verify-backend.sh` 驗證：GET 回 JSON、POST 寫入 results、count 由 0→1。**測試那列（persona＝測試資料）請 Gary 刪除** |
+| Google 表單回饋 | ➖ 取消 | Gary 決定 v0 不做表單，`FEEDBACK_URL` 留空，左下角只顯示版本標籤；回饋改由 LINE 直接收 |
+| GA4 | ✅ `G-DSHJT72D4Z` | 資料串流「數位年齡測驗」；沙箱驗證 gtag 載入與 `finish` 事件送出 |
+| og:image／og:url | ✅ | 指向正式網址，另補 `og:image:width/height` 1200×630 |
 
-拿到以上資料後，我會填進 `index.html` 頂端的 `LEAD_ENDPOINT`、`STATS_ENDPOINT`、`FEEDBACK_URL`、`GA_ID`，以及 `og:image`／`og:url`，再 commit「v0-beta 上線設定」。
+## 6. 部署 GitHub Pages（已完成）
 
----
+Gary 於 Mac 以 GitHub 網頁建 repo `gary40/weiz-digital-age`，`git push --force` 覆蓋自動產生的 README 後，在 Settings → Pages 選 main／root 發布。`curl -sI` 回 200 確認。後續程式更新由 Claude 直接推 main，Pages 自動重新部署（約 1–2 分鐘）。
 
-## 6. 部署 GitHub Pages（需要 Gary）
-
-這個工作階段的 GitHub 權限只涵蓋 `gary40/utm`，無法替你開新 repo。兩個做法擇一：
-
-**A. 新 repo（建議）**：在 Mac 上、`weiz-digital-age/` 資料夾內
-
-```bash
-gh repo create weiz-digital-age --public --source=. --push
-gh api -X POST repos/gary40/weiz-digital-age/pages -f "source[branch]=main" -f "source[path]=/"
-gh api repos/gary40/weiz-digital-age/pages --jq .html_url
-```
-
-**B. 把 `gary40/utm` 這個 repo 加進我的權限**，我再幫你建 repo 與開 Pages（需要你在 claude.ai 的 GitHub 連接器授權 `weiz-digital-age`）。
-
-部署後：等 1–2 分鐘 `curl -sI <網址>` 回 200 → LINE 傳給自己看預覽大圖 → `QUIZ_URL=<正式網址> python3 acceptance.py` 跑線上回歸。
-
----
+**尚未做**：線上回歸 `QUIZ_URL=https://gary40.github.io/weiz-digital-age/ python3 acceptance.py`（沙箱連不到 github.io，需 Gary 在 Mac 跑）；LINE 分享預覽大圖確認。
 
 ## 7. 測試者邀請文案草稿
 
-> 嗨，我們做了一個小測驗「你的數位年齡是幾歲？」——15 題 3C 與網路時事快問快答，每題 15 秒，會告訴你科技記憶停在哪一年，還能把結果丟給朋友對戰。現在是測試版，想請你玩一輪（約 4 分鐘），順手填一下回饋，特別想知道：有沒有聽到音樂、每題答完有沒有顯示正解、結果準不準。
+> 嗨，我們做了一個小測驗「你的數位年齡是幾歲？」——15 題 3C 與網路時事快問快答，每題 15 秒，會告訴你科技記憶停在哪一年，還能把結果丟給朋友對戰。現在是測試版，想請你玩一輪（約 4 分鐘），順手回我幾句感想，特別想知道：有沒有聽到音樂、每題答完有沒有顯示正解、結果準不準。
 >
-> 測驗：**（正式網址，待填）**
-> 回饋表單：**（Google 表單網址，待填）**
+> 測驗：https://gary40.github.io/weiz-digital-age/
 >
-> 玩完記得截結果圖卡傳給我，看誰比較老 😆
+> 玩完直接在 LINE 回我三件事：用什麼手機、有沒有聽到音樂、結果準不準。順便截結果圖卡傳給我，看誰比較老 😆
 
 ---
 
 ## 8. 下一步
 
 1. **Gary 審核本報告與修正內容**（B 級對外發布）。
-2. Gary 在 Mac／iPhone 跑 M1–M13，結果填回 `BUGS.md`，優先驗 M2、M8。
-3. Gary 提供第 5 節五項資料 → 我填設定、改 og 網址、commit。
-4. Gary 開 repo 與 Pages（第 6 節 A）或授權後由我處理（B）。
-5. 上線後跑線上回歸與 LINE 預覽確認，再發邀請文案。
+2. Gary 刪除試算表 `results` 分頁的測試資料列。
+3. Gary 在 iPhone／Mac 跑 M1–M13，結果填回 `BUGS.md`，優先驗 M2、M8；LINE 傳網址給自己確認分享大圖。
+4. Gary 在 Mac 跑線上回歸與 WebKit 一輪（指令見第 2-2 節，`QUIZ_URL` 改正式網址）。
+5. 以上無阻斷問題 → 發邀請文案給第一批測試者（建議 10–20 人）。
+6. 收到回饋後開 v0.1 修正清單。
 
 ---
 
@@ -164,11 +147,11 @@ gh api repos/gary40/weiz-digital-age/pages --jq .html_url
   - 網路搜尋：無
   - 自有知識推論：iOS Safari 對空音檔、navigator.share 手勢有效期、backdrop-filter 前綴、
     http 環境下 navigator.share／clipboard 不存在（皆為瀏覽器行為的通用知識，未在 iPhone 實機驗證，標「未經驗證」）
-▸ 已驗證項目：Chromium 141 自動化 51／51；無聲音檔 duration 0.25 s 且 paused=false；
+▸ 已驗證項目：Chromium 141 自動化 51／51；正式網址 curl 200（Gary）；Apps Script GET／POST（Gary 執行 verify-backend.sh）；GA4 gtag 載入與 finish 事件（沙箱模擬）；無聲音檔 duration 0.25 s 且 paused=false；
   再測一次後 location.search 保留；圖卡 blob 1.9 MB 預先產生、下載檔名正確；兩個 script 區塊語法檢查通過；
   commit hash 3c68b9c／813c3c1 取自 git log
-▸ 未確認項目／假設：正式網址；WebKit 自動化結果；M1–M13 真機結果；
-  B1／B3 修正在 iPhone 上的實際效果；50 題事實年份
+▸ 未確認項目／假設：WebKit 自動化結果；線上回歸；M1–M13 真機結果；
+  B1／B3 修正在 iPhone 上的實際效果；LINE 分享預覽；50 題事實年份
 ▸ 風險分級：☑ B 對外發布（測驗將公開給測試者與社群）
 ▸ 建議審核人：Gary
 ▸ 狀態：⚠️ AI 產出・待人工審核
