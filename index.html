@@ -14,6 +14,11 @@
 <meta name="theme-color" content="#333333">
 <meta name="theme-color" content="#333333">
 <meta name="theme-color" content="#333333">
+<meta name="theme-color" content="#333333">
+<meta name="theme-color" content="#333333">
+<meta name="theme-color" content="#333333">
+<meta name="theme-color" content="#333333">
+<meta name="theme-color" content="#333333">
 <title>你的數位年齡是幾歲？｜WEiZ 數位年齡測驗</title>
 <meta name="description" content="15 題 3C 與網路時事快問快答，每題 15 秒，測出你的數位年齡。WEiZ 出品。">
 <meta property="og:title" content="你的數位年齡是幾歲？｜WEiZ 數位年齡測驗">
@@ -79,7 +84,7 @@ img{display:block;max-width:100%}
 
 /* Top bar：深色融合、銀邊分隔 */
 .topbar{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;min-height:60px;margin:0 calc(-1*var(--sp-1)) var(--sp-05);padding:0 8px;border-bottom:1px solid rgba(201,204,214,.25);background:linear-gradient(180deg,rgba(255,255,255,.04),transparent)}
-.topbar .logo{height:22px;width:auto;justify-self:center}
+.topbar .logo{height:26px;width:auto;justify-self:center}
 .tb-btn{width:48px;height:48px;display:grid;place-items:center;border-radius:12px;color:var(--text)}
 .tb-btn:hover{background:rgba(255,255,255,.08)}
 .tb-btn svg{width:24px;height:24px}
@@ -107,12 +112,15 @@ img{display:block;max-width:100%}
 
 /* ===== 首頁 ===== */
 #home{text-align:center}
-#home .hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--sp-05);padding:var(--sp-05) 0}
-.eyebrow{display:inline-block;border:1px solid var(--silver-dim);border-radius:999px;padding:6px 14px}
-h1{font-size:34px;font-weight:700;line-height:1.2;letter-spacing:-.02em;text-shadow:0 0 24px rgba(93,89,255,.55)}
+#home .hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:4px 0}
+.eyebrow{display:inline-block;border:1px solid var(--silver-dim);border-radius:999px;padding:5px 12px}
+h1{font-size:30px;font-weight:700;line-height:1.2;letter-spacing:-.02em;text-shadow:0 0 24px rgba(93,89,255,.55)}
 #home h1 b{color:var(--weiz-indigo-200)}
-.lead{color:var(--muted);font-size:15px;max-width:300px}
-.mascot-wrap{position:relative;width:52%;max-width:220px;margin:6px 0;border-radius:24px;padding:0}
+.lead{color:var(--muted);font-size:14px;max-width:290px;line-height:1.5}
+.mascot-wrap{position:relative;width:40%;max-width:160px;margin:2px 0;border-radius:24px;padding:0}
+/* 矮螢幕（Safari 有上下列時約 664px）再縮，確保開始鈕在首屏 */
+@media(max-height:720px){#home .hero{gap:6px}.mascot-wrap{max-width:132px}h1{font-size:28px}.lead{font-size:13px}.eyebrow{display:none}.home-count{font-size:12px}#home .btn-primary{min-height:52px}}
+@media(max-height:600px){.mascot-wrap{max-width:104px}.marquee-wrap{display:none}}
 .mascot-wrap img{width:100%;animation:float 4s ease-in-out infinite}
 .mascot-wrap.boop img{animation:jump .5s var(--ease)}
 .mascot-wrap .glow{position:absolute;left:10%;right:10%;bottom:4px;height:22px;border-radius:50%;background:radial-gradient(closest-side,rgba(252,170,7,.55),transparent);filter:blur(6px);pointer-events:none}
@@ -135,7 +143,8 @@ h1{font-size:34px;font-weight:700;line-height:1.2;letter-spacing:-.02em;text-sha
 .chip-count{display:inline-flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--silver-dim);border-radius:999px;padding:6px 16px;font-size:13px;font-weight:500;color:var(--muted)}
 .home-count{font-size:13px;color:var(--muted)}
 .home-count b{color:var(--weiz-gold);font-variant-numeric:tabular-nums;font-size:15px}
-#home .btn-primary{margin-top:var(--sp-05);box-shadow:0 0 0 1px rgba(255,255,255,.15) inset,0 10px 30px rgba(93,89,255,.4)}
+#home .btn-primary{margin-top:6px;box-shadow:0 0 0 1px rgba(255,255,255,.15) inset,0 10px 30px rgba(93,89,255,.4)}
+#home .link{min-height:36px;padding:6px}
 
 /* ===== 出生年代 ===== */
 #birth .wrap{flex:1;display:flex;flex-direction:column;justify-content:center;gap:var(--sp-1)}
@@ -167,9 +176,9 @@ h1{font-size:34px;font-weight:700;line-height:1.2;letter-spacing:-.02em;text-sha
 .progress i.cur{background:var(--weiz-indigo-200);box-shadow:0 0 8px var(--weiz-indigo-200)}
 .progress i.ok{background:var(--weiz-indigo-500)}.progress i.ng{background:var(--silver-dim)}
 .era-tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 12px;border-radius:6px;margin:6px 0 4px;background:var(--et,var(--era4t));color:var(--ec,var(--weiz-indigo-200));border:1px solid currentColor;align-self:flex-start;white-space:nowrap}
-.qtext{font-size:22px;font-weight:700;line-height:1.4;min-height:3.1em;display:flex;align-items:center;letter-spacing:-.01em;animation:fade .35s var(--ease) both}
-.options{display:grid;gap:10px;margin-top:var(--sp-05)}
-.opt{display:grid;grid-template-columns:34px 1fr 26px;align-items:center;gap:12px;text-align:left;height:64px;padding:0 14px;background:var(--surface-2);border:1px solid var(--silver-dim);border-radius:var(--r-card);font-size:16px;line-height:1.3;color:var(--text);transition:border-color .16s var(--ease),background .16s var(--ease),transform .14s var(--ease);animation:optIn .38s var(--ease) both}
+.qtext{font-size:21px;font-weight:700;line-height:1.4;min-height:2.9em;display:flex;align-items:center;letter-spacing:-.01em;animation:fade .35s var(--ease) both}
+.options{display:grid;gap:8px;margin-top:10px}
+.opt{display:grid;grid-template-columns:34px 1fr 26px;align-items:center;gap:12px;text-align:left;height:58px;padding:0 14px;background:var(--surface-2);border:1px solid var(--silver-dim);border-radius:var(--r-card);font-size:16px;line-height:1.3;color:var(--text);transition:border-color .16s var(--ease),background .16s var(--ease),transform .14s var(--ease);animation:optIn .38s var(--ease) both}
 .opt:nth-child(1){animation-delay:.04s}.opt:nth-child(2){animation-delay:.1s}.opt:nth-child(3){animation-delay:.16s}.opt:nth-child(4){animation-delay:.22s}
 @keyframes optIn{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
 .opt .key{width:32px;height:32px;border-radius:8px;background:var(--et,var(--era4t));color:var(--ec,var(--weiz-indigo-200));display:grid;place-items:center;font-size:14px;font-weight:700}
@@ -184,17 +193,19 @@ h1{font-size:34px;font-weight:700;line-height:1.2;letter-spacing:-.02em;text-sha
 .opt.wrong,.opt.wrong:hover{background:var(--era1);border-color:#FFB49A;color:#fff;transition:none;animation:shake .4s var(--ease)}.opt.wrong .key{background:#fff;color:var(--era1)}
 .opt.wrong .mark{opacity:1;background:#fff;color:var(--era1)}.opt.wrong .mark::before{content:'✕'}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
-.quiz-foot{margin-top:auto;padding-top:var(--sp-05);display:grid;gap:10px}
-.feedback{display:grid;grid-template-columns:56px 1fr;align-items:center;gap:10px;min-height:64px}
-.feedback img{width:56px;height:56px;transition:transform .3s var(--ease)}
+/* 頁尾：回饋列與「下一題」都固定占位，答完不會把威比往上推；底部留安全區 */
+.quiz-foot{margin-top:auto;padding-top:10px;padding-bottom:env(safe-area-inset-bottom,0px);display:grid;gap:8px}
+.feedback{display:grid;grid-template-columns:76px 1fr;align-items:center;gap:10px;height:76px}
+.feedback .bubble{max-height:60px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;padding:8px 12px;font-size:13px}
+.feedback img{width:76px;height:76px;object-fit:contain;transition:transform .3s var(--ease)}
 .feedback img.jump{animation:jump .5s var(--ease)}
 .bubble{position:relative;background:var(--surface-2);border:1px solid var(--silver-dim);border-radius:14px;padding:10px 14px;font-size:14px;color:var(--muted);line-height:1.5;animation:fade .3s var(--ease) both}
 .bubble b{color:var(--text);font-weight:700}
 .bubble.good{background:rgba(94,242,94,.14);border-color:#5EF25E;color:#CFFFCF}.bubble.good b{color:#5EF25E}
 .bubble.bad{background:rgba(250,76,9,.16);border-color:var(--era1);color:#FFD7C7}.bubble.bad b{color:#FFB49A}
 .bubble.timeout-flash{background:rgba(252,170,7,.14);border-color:var(--weiz-gold);color:#FFE7A3}
-.next{min-height:56px}
-.next[hidden]{display:none}
+.next{min-height:52px}
+.next[hidden]{display:inline-flex;visibility:hidden;pointer-events:none}
 .next svg{width:18px;height:18px}
 
 /* ===== 記憶掃描 ===== */
@@ -252,7 +263,12 @@ body.paused .scanner,body.paused .mem-line,body.paused .beam,body.paused .beam-d
 .gap{margin-top:8px;font-size:18px;font-weight:700}
 .gap.up{color:#FFE7A3}.gap.down{color:#CFFFCF}
 .gap:empty{display:none}
-.quip{margin:10px auto 0;max-width:340px;font-size:15px;color:var(--text);background:var(--surface-2);border:1px solid var(--silver-dim);border-radius:12px;padding:10px 14px}
+.quip-card{position:relative;margin:12px auto 0;max-width:340px;padding:16px 22px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(93,89,255,.22),rgba(44,44,50,.9) 55%,rgba(252,170,7,.14));border:1px solid rgba(163,163,255,.55);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),0 10px 30px rgba(0,0,0,.35)}
+.quip-card::before,.quip-card::after{content:'';position:absolute;width:10px;height:10px;background:var(--weiz-gold)}
+.quip-card::before{left:-1px;top:-1px;clip-path:polygon(0 0,100% 0,0 100%)}.quip-card::after{right:-1px;bottom:-1px;clip-path:polygon(100% 100%,100% 0,0 100%)}
+.quip-card .qmark{position:absolute;font-family:Georgia,'Noto Serif TC',serif;font-size:44px;line-height:1;color:var(--weiz-gold);opacity:.9;left:10px;top:2px}
+.quip-card .qmark.end{left:auto;right:10px;top:auto;bottom:-10px}
+.quip{font-size:16px;font-weight:500;line-height:1.55;color:#fff;text-align:center}
 .rank{margin-top:10px;display:inline-flex;align-items:center;gap:6px;background:rgba(252,170,7,.14);border:1px solid rgba(252,170,7,.5);border-radius:999px;padding:5px 14px;font-size:13px;color:#FFE7A3}
 .rank b{font-size:15px;font-weight:700}
 .keywords{margin-top:10px;font-size:13px;color:var(--muted)}
@@ -264,11 +280,17 @@ body.paused .scanner,body.paused .mem-line,body.paused .beam,body.paused .beam-d
 .tip-sub{font-size:12px;color:var(--muted-2);margin-top:2px}
 .tip-body{margin-top:10px;font-size:15px;line-height:1.6;color:var(--text)}
 .tip-body b{color:#FFE7A3;font-weight:500}
-.oa-card{display:grid;grid-template-columns:44px 1fr 20px;gap:12px;align-items:center;text-decoration:none;color:var(--text);border-color:rgba(6,199,85,.55);background:linear-gradient(135deg,rgba(6,199,85,.16),var(--surface-2))}
-.oa-card h2{margin:0;color:var(--text);font-size:16px}
-.oa-card p{font-size:13px;color:var(--muted);margin-top:2px}
-.oa-icon{width:44px;height:44px;border-radius:12px;background:var(--line-green);color:#fff;display:grid;place-items:center}
-.oa-arrow{font-size:26px;color:var(--muted-2)}
+.oa-cta{position:relative;overflow:hidden;margin-top:14px;display:grid;grid-template-columns:40px 1fr 18px;gap:10px;align-items:center;text-decoration:none;color:#fff;background:var(--line-green);border-radius:12px;padding:10px 12px;box-shadow:0 6px 18px rgba(6,199,85,.3);animation:ctaPulse 2.6s ease-in-out infinite}
+.oa-cta::after{content:'';position:absolute;top:-40%;left:-60%;width:40%;height:180%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);transform:rotate(20deg);animation:shine 3.2s ease-in-out infinite}
+.oa-icon{width:40px;height:40px;border-radius:10px;background:#fff;color:var(--line-green);display:grid;place-items:center}
+.oa-text{display:grid;gap:1px;line-height:1.3}
+.oa-text b{font-size:14px;font-weight:700}
+.oa-text span{font-size:12px;opacity:.92}
+.oa-arrow{font-size:24px;line-height:1;animation:arrowNudge 1.4s ease-in-out infinite}
+@keyframes ctaPulse{0%,100%{box-shadow:0 6px 18px rgba(6,199,85,.3)}50%{box-shadow:0 6px 26px rgba(6,199,85,.6)}}
+@keyframes shine{0%,55%{left:-60%}100%{left:130%}}
+@keyframes arrowNudge{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
+body.paused .oa-cta,body.paused .oa-cta::after,body.paused .oa-arrow,body.paused .fab-tip{animation-play-state:paused}
 .cardprev .row.row4{grid-template-columns:1fr 1fr}
 .sheet .box{text-align:left;max-width:380px}
 .sheet h2{font-size:18px}
@@ -288,8 +310,11 @@ body.paused .scanner,body.paused .mem-line,body.paused .beam,body.paused .beam-d
 .fab .fab-z svg{width:40px;height:40px}
 .fab .fab-done{position:absolute;right:-2px;top:-2px;width:20px;height:20px;border-radius:50%;background:var(--weiz-gold);color:#3A2700;font-size:12px;font-weight:700;display:none;place-items:center;border:2px solid #2C2C32}
 .fab.done .fab-done{display:grid}
-.fab .fab-tip{position:absolute;right:66px;top:50%;transform:translateY(-50%);background:#fff;color:#1F1F24;font-size:13px;font-weight:700;padding:8px 12px;border-radius:12px 12px 2px 12px;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .25s}
-.fab.show-tip .fab-tip{opacity:1}
+.fab .fab-tip{position:absolute;right:64px;top:50%;transform:translateY(-50%);background:linear-gradient(135deg,#FCAA07,#FDD403);color:#3A2700;font-size:13px;font-weight:700;line-height:1.25;padding:8px 12px;border-radius:12px 4px 4px 12px;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.35);text-align:left;pointer-events:none;animation:tipNudge 2.2s ease-in-out infinite}
+.fab .fab-tip::after{content:'';position:absolute;right:-8px;top:50%;transform:translateY(-50%);border:8px solid transparent;border-right:0;border-left-color:#FDD403}
+.fab.done .fab-tip{animation:none;background:var(--surface-2);color:var(--muted);border:1px solid var(--silver-dim)}
+.fab.done .fab-tip::after{border-left-color:var(--surface-2)}
+@keyframes tipNudge{0%,100%{transform:translateY(-50%) translateX(0)}50%{transform:translateY(-50%) translateX(-4px)}}
 .fab:hover{background:#F2F2FF}
 .fab:not(.done){animation:fabIn .4s var(--ease) both,fabPulse 2.4s ease-in-out 1s 3}
 @keyframes fabIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
@@ -380,18 +405,20 @@ body.paused .scanner,body.paused .mem-line,body.paused .beam,body.paused .beam-d
 .modal p{color:var(--muted);font-size:14px}
 .modal .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 /* toast、版本標籤 */
-.toast{position:fixed;left:50%;bottom:calc(var(--sp-1) + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:#fff;color:#1F1F24;padding:10px 18px;border-radius:var(--r-btn);font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:all .24s var(--ease);z-index:40;max-width:calc(100% - 32px);text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(var(--sp-1) + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:#fff;color:#1F1F24;padding:10px 18px;border-radius:var(--r-btn);font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:all .24s var(--ease);z-index:40;max-width:calc(100% - 32px);width:max-content;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%)}
-.beta{position:fixed;left:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:5;font-size:11px;font-weight:500;color:#FFE7A3;background:rgba(252,170,7,.14);border:1px solid rgba(252,170,7,.5);border-radius:999px;padding:5px 10px;text-decoration:none}
+body:not(.on-home) .beta{display:none}
+.beta{position:fixed;left:14px;top:calc(18px + env(safe-area-inset-top,0px));z-index:5;font-size:11px;font-weight:500;color:#FFE7A3;background:rgba(252,170,7,.14);border:1px solid rgba(252,170,7,.5);border-radius:999px;padding:5px 10px;text-decoration:none}
 @media(min-width:560px){.beta{left:calc(50% - 240px + 14px)}}
 /* 減少動態 */
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.marquee .track{transform:none}.marquee{-webkit-mask-image:none;mask-image:none}.marquee .seg+.seg{display:none}}
 /* 背景分頁：暫停裝飾動畫 */
 body.paused .orb,body.paused .marquee .track,body.paused .mascot-wrap img,body.paused .scan-line{animation-play-state:paused}
-@media(max-width:360px){h1{font-size:30px}.age{font-size:76px}.qtext{font-size:20px}.btn{font-size:16px}}
+@media(max-width:360px){h1{font-size:28px}.age{font-size:76px}.qtext{font-size:19px}.btn{font-size:16px}}
+@media(max-height:700px){.opt{height:52px}.options{gap:6px}.qtext{font-size:19px;min-height:2.7em}.qhead{padding:6px 12px}.progress{margin:8px 0}.feedback{height:62px;grid-template-columns:62px 1fr}.feedback img{width:62px;height:62px}}
 </style>
 </head>
-<body>
+<body class="on-home">
 <script>
 (function(){ const m=document.currentScript; window.__ga=function(id){ if(!id) return; const s=document.createElement('script'); s.async=true; s.src='https://www.googletagmanager.com/gtag/js?id='+id; document.head.appendChild(s); window.dataLayer=window.dataLayer||[]; window.gtag=function(){dataLayer.push(arguments)}; gtag('js',new Date()); gtag('config',id); }; })();
 </script>
@@ -415,7 +442,6 @@ body.paused .orb,body.paused .marquee .track,body.paused .mascot-wrap img,body.p
   </div>
   <button class="btn btn-primary" id="startBtn">開始挑戰 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
   <button class="link" id="lastResultBtn" style="display:none">查看上次結果 ›</button>
-  <p class="pixel" style="text-align:center;margin-top:10px">WEiZ digital age quiz</p>
 </section>
 
 <!-- 出生年代 -->
@@ -483,7 +509,7 @@ body.paused .orb,body.paused .marquee .track,body.paused .mascot-wrap img,body.p
     <div class="legend-badge" id="legendBadge" style="display:none">限定成就・全時代通才</div>
     <p class="oneliner" id="rOne"></p>
     <div class="gap" id="rGap"></div>
-    <div class="quip" id="rQuip"></div>
+    <div class="quip-card"><span class="qmark" aria-hidden="true">“</span><div class="quip" id="rQuip"></div><span class="qmark end" aria-hidden="true">”</span></div>
     <p class="keywords" id="rKeywords"></p>
     <div><span class="challenge-note" id="challengeNote" style="display:none"></span></div>
     <img class="mascot" id="rMascot" src="" alt="">
@@ -502,12 +528,12 @@ body.paused .orb,body.paused .marquee .track,body.paused .mascot-wrap img,body.p
     <div class="card tip-card" id="tipCard">
       <div class="tip-head"><img class="wb" data-asset="m_read" src="" alt=""><div><h2>威比科技小知識</h2><p class="tip-sub" id="tipSub"></p></div></div>
       <p class="tip-body" id="tipBody"></p>
+      <a class="oa-cta" id="oaCard" href="#" target="_blank" rel="noopener" style="display:none">
+        <span class="oa-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.4 7.2 8 7.9.3.1.7.2.8.5.1.2.1.6 0 .9l-.1.8c0 .3-.2 1 .9.5s5.9-3.5 8-5.9C21.3 14 22 12.6 22 11c0-4.4-4.5-8-10-8z"/></svg></span>
+        <span class="oa-text"><b>想每週收到威比科技小知識？</b><span>加入 WEiZ LINE 好友，掌握最新科技與 3C 生活技巧</span></span>
+        <span class="oa-arrow" aria-hidden="true">›</span>
+      </a>
     </div>
-    <a class="card oa-card" id="oaCard" href="#" target="_blank" rel="noopener" style="display:none">
-      <div class="oa-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.4 7.2 8 7.9.3.1.7.2.8.5.1.2.1.6 0 .9l-.1.8c0 .3-.2 1 .9.5s5.9-3.5 8-5.9C21.3 14 22 12.6 22 11c0-4.4-4.5-8-10-8z"/></svg></div>
-      <div><h2>加入 WEiZ LINE 好友</h2><p>定期和威比掌握最新科技知識，探索更好用的 3C 生活技巧。</p></div>
-      <span class="oa-arrow">›</span>
-    </a>
     <div class="card vs-card" id="vsCard" style="display:none">
       <h2>好友對戰</h2>
       <div class="vs"><div id="vsMe"><div class="who">你</div><div class="num"></div></div><div class="badge-vs">VS</div><div id="vsThem"><div class="who">朋友</div><div class="num"></div></div></div>
@@ -549,7 +575,7 @@ body.paused .orb,body.paused .marquee .track,body.paused .mascot-wrap img,body.p
   <button class="btn btn-ghost" id="sheetClose">關閉</button>
 </div></div>
 <!-- 右下角懸浮 Z 圓標：領取 WEiZ 專屬優惠（結果頁本人才顯示） -->
-<button class="fab" id="offerFab" aria-label="領取 WEiZ 專屬優惠" hidden><span class="fab-tip" id="offerTip">領取 WEiZ 專屬優惠</span><span class="fab-z" aria-hidden="true"><svg viewBox="280 280 680 680" aria-hidden="true"><path fill="#5D59FF" d="M312 312h618l-192 388h-83l170-360H325z"/><path fill="#333333" d="M352 395h418L650 720h185l60 130H470l130-325H420z"/><path fill="#5D59FF" d="M505 548h85L415 905h500l15 30H312z"/></svg></span><span class="fab-done" aria-hidden="true">✓</span></button>
+<button class="fab" id="offerFab" aria-label="點我領取 WEiZ 限定優惠券" hidden><span class="fab-tip" id="offerTip">點我領取<br>WEiZ 限定優惠券</span><span class="fab-z" aria-hidden="true"><svg viewBox="280 280 680 680" aria-hidden="true"><path fill="#5D59FF" d="M312 312h618l-192 388h-83l170-360H325z"/><path fill="#333333" d="M352 395h418L650 720h185l60 130H470l130-325H420z"/><path fill="#5D59FF" d="M505 548h85L415 905h500l15 30H312z"/></svg></span><span class="fab-done" aria-hidden="true">✓</span></button>
 <div class="modal sheet" id="offerModal" role="dialog" aria-modal="true" aria-labelledby="offerTitle"><div class="box">
   <button class="modal-x" id="offerClose" aria-label="關閉"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   <div class="card lead-card" id="leadCard" style="animation:none">
@@ -570,7 +596,7 @@ const LEAD_ENDPOINT = "https://script.google.com/macros/s/AKfycbz5bqa3zpU6ZQz-uf
 const STATS_ENDPOINT = "https://script.google.com/macros/s/AKfycbz5bqa3zpU6ZQz-ufubzrjj0DXfat-eYl0Y72RVU_YNXuBkwm0uvQsaFiFOtbR0zada9A/exec";  // 匿名結果回傳與統計（GET 回 {count,mean,sd}；POST 收結果）
 const REAL_STATS_MIN = 500;  // 累積幾筆後改用真實分布
 // ===== 部署設定（上線前只需改這一區）=====
-const VERSION = 'v1.0';
+const VERSION = 'v1.1';
 const FEEDBACK_URL = "";     // 回饋表單網址（Google 表單），空字串則隱藏回饋鈕
 const GA_ID = "G-DSHJT72D4Z"; // GA4 評估 ID（資料串流：數位年齡測驗）；空字串不載入
 const AB_TEST = false;         // true 才會隨機分派 instant／silent 兩組；預設一律顯示解答
@@ -617,7 +643,7 @@ const rid = n => { const a = new Uint8Array(n||10); (window.crypto||{}).getRando
 let quiz = [], idx = 0, answers = [], timerId = null, deadline = 0, locked = false, secs = 15, lastResult = null, answered = false;
 const $ = s => document.querySelector(s);
 const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-const show = id => { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); $('#'+id).classList.add('active'); window.scrollTo(0,0); if (id !== 'result') { const f = document.querySelector('#offerFab'); if (f) f.hidden = true; } onScreenChange(id); };
+const show = id => { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); $('#'+id).classList.add('active'); window.scrollTo(0,0); document.body.classList.toggle('on-quiz', id==='quiz'); document.body.classList.toggle('on-home', id==='home'); if (id !== 'result') { const f = document.querySelector('#offerFab'); if (f) f.hidden = true; } onScreenChange(id); };
 const shuffle = a => { for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch(e){} };
 const guestId = (() => { const k = 'weiz_age_guest'; let g = null; try { g = JSON.parse(localStorage.getItem(k)||'null'); } catch(e){} if (!g) { g = rid(12); try { localStorage.setItem(k, JSON.stringify(g)); } catch(e){} } return g; })();
@@ -938,14 +964,15 @@ function runScan(done){
   setPct(0);
   if (reduceMotion()) { done(); return; }
   const t0 = performance.now(), MIN_MS = 2400;
-  const mark = (k, pct) => { steps[k].classList.add('on'); if (k>0) steps[k-1].classList.add('done'); setPct(pct); sfx('scan'); };
+  const loud = kind => { try { if (sfxGain) { sfxGain.gain.value = SFX_VOL*1.5; setTimeout(() => { if (sfxGain) sfxGain.gain.value = SFX_VOL; }, 1200); } } catch(e){} sfx(kind); }; // 掃描特效音放大 50%
+  const mark = (k, pct) => { steps[k].classList.add('on'); if (k>0) steps[k-1].classList.add('done'); setPct(pct); loud('scan'); };
   mark(0, 20); // 年代線索已整理（分數已於 finish 計算）
   setTimeout(() => setPct(40), 450);
   setTimeout(() => mark(1, 60), 800); // 答題結果已計算（結果資料已備妥）
   setTimeout(() => {
     mark(2, 80);
     prepareCertificate(lastResult).catch(()=>{}).then(() => { // 結果卡產生中：真的先把證書畫好
-      steps[2].classList.add('done'); setPct(100); sfx('scanDone');
+      steps[2].classList.add('done'); setPct(100); loud('scanDone');
       const wait = Math.max(0, MIN_MS - (performance.now()-t0));
       setTimeout(done, wait + 350);
     });
@@ -967,7 +994,7 @@ function paintResult(r, animate){
   const kws = r.kw && r.kw.length ? r.kw : null;
   $('#rKeywords').innerHTML = kws ? `${KEYWORD_LABEL}：<b>${kws.map(esc).join('・')}</b>` : '';
   paintTip(r);
-  $('#oaCard').style.display = LINE_OA_URL ? '' : 'none'; if (LINE_OA_URL) $('#oaCard').href = LINE_OA_URL;
+  $('#oaCard').style.display = LINE_OA_URL ? '' : 'none'; if (LINE_OA_URL) { $('#oaCard').href = LINE_OA_URL; $('#oaCard').onclick = () => track('line_oa_click', { position:'tip_card' }); }
   $('#rWhose').textContent = r.guest ? '朋友的數位年齡' : '你的數位年齡'; $('#rWho2').textContent = r.guest ? '他的' : '你的';
   $('#doneTitle').textContent = r.guest ? '朋友的挑戰' : '挑戰完成';
   $('#ownerActions').style.display = r.guest ? 'none' : '';
@@ -1094,7 +1121,7 @@ async function submitLead(){
     if (LEAD_ENDPOINT) res = await postJSON(Object.assign(payload, { attempt_id:attemptId, guest_id:guestId, test_mode:TEST_MODE?1:0 })); else console.log('[lead]', payload);
     if (!res || !res.ok) throw new Error(res && res.error || 'no receipt');
     $('#leadCard').innerHTML = '<h2>已領取 WEiZ 專屬優惠 ✓</h2><p class="lead-done">收到了！折扣碼會寄到你的信箱，記得看一下垃圾郵件匣。先把測驗丟給朋友，看誰比較老。</p><p class="footnote" style="margin-top:6px">收件編號 ' + esc(res.receipt_id||'') + '</p>';
-    store.set('weiz_age_offer_done', { at: Date.now(), receipt: res.receipt_id||'' }); $('#offerFab').classList.add('done'); $('#offerFab').setAttribute('aria-label','已領取 WEiZ 專屬優惠'); $('#offerFab').classList.remove('show-tip');
+    store.set('weiz_age_offer_done', { at: Date.now(), receipt: res.receipt_id||'' }); $('#offerFab').classList.add('done'); $('#offerFab').setAttribute('aria-label','已領取 WEiZ 限定優惠券'); $('#offerTip').innerHTML = '已領取<br>WEiZ 限定優惠券';
     track('lead_success', {});
   } catch(e) { toast('送出沒有成功，請再試一次'); track('lead_error', { reason: String(e && e.message || e).slice(0,40) }); $('#leadBtn').disabled = false; $('#leadBtn').textContent = '領折扣碼'; }
 }
@@ -1111,7 +1138,7 @@ function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('sh
 
 
 // ===== 音樂：Web Audio 即時合成的 8-bit 復古循環（原創，無版權問題）=====
-let soundMode = 0; // 0 關閉 1 音效 2 音效＋音樂（預設關閉，玩家開啟後記住）
+let soundMode = 2; // 0 關閉 1 音效 2 音效＋音樂（預設開：瀏覽器規定要在第一次點擊後才能出聲；玩家改過就記住）
 const MUSIC_VOL = 0.40;   // 背景音樂 40%
 const SFX_VOL   = 0.52;   // 音效比音樂大 30%（0.40 × 1.3）
 let AC = null, musicOn = false, seqTimer = null, masterGain = null, musicGain = null, sfxGain = null;
@@ -1186,13 +1213,15 @@ async function kickAudio(){ // 使用者手勢內：把 AudioContext 叫醒，�
   if (soundMode===0) return;
   try { unlockMedia(); ensureAC(); if (AC && AC.state !== 'running') { await AC.resume(); } if (AC && AC.state !== 'running') { try { AC.close(); } catch(e){} AC = null; ensureAC(); await AC.resume(); } } catch(e){}
   applyMusic();
+  if (soundMode===2 && musicOn && !musicToastShown) { musicToastShown = true; toast('🎵 音樂已開啟，右上角可關'); }
 }
 // iOS 靜音鍵會把 Web Audio 靜掉；先播一個無聲 <audio> 把媒體通道打開就能繞過（只在玩家開啟音效時才播）
 function unlockMedia(){ try { const a = $('#unlock'); a.volume = 0.01; const p = a.play(); if (p && p.catch) p.catch(()=>{}); } catch(e){} }
 document.querySelectorAll('[data-sound]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); setSound((soundMode+1)%3); }));
 ['pointerdown','touchend','keydown'].forEach(ev => document.addEventListener(ev, kickAudio, { passive:true }));
 document.addEventListener('visibilitychange', () => { document.body.classList.toggle('paused', document.hidden); if (document.hidden) stopMusic(); else applyMusic(); });
-(function(){ const saved = store.get('weiz_age_sound'); soundMode = (saved===1||saved===2) ? saved : 0; paintSound(); })();
+(function(){ const saved = store.get('weiz_age_sound'); soundMode = (saved===0||saved===1||saved===2) ? saved : 2; paintSound(); })();
+let musicToastShown = false;
 
 // ===== 數位年齡證書（Canvas 1080×1920，9:16 直式）=====
 const imgCache = {};
@@ -1319,10 +1348,10 @@ $('#leadForm').addEventListener('submit', e => { e.preventDefault(); submitLead(
 function paintOfferFab(show){
   const fab = $('#offerFab'); const done = !!store.get('weiz_age_offer_done');
   fab.hidden = !(OFFER_FAB && show); fab.classList.toggle('done', done);
-  fab.setAttribute('aria-label', done ? '已領取 WEiZ 專屬優惠' : '領取 WEiZ 專屬優惠');
-  if (!fab.hidden && !done) { setTimeout(() => fab.classList.add('show-tip'), 1200); setTimeout(() => fab.classList.remove('show-tip'), 6500); }
+  fab.setAttribute('aria-label', done ? '已領取 WEiZ 限定優惠券' : '點我領取 WEiZ 限定優惠券');
+  $('#offerTip').innerHTML = done ? '已領取<br>WEiZ 限定優惠券' : '點我領取<br>WEiZ 限定優惠券';
 }
-$('#offerFab').addEventListener('click', () => { $('#offerFab').classList.remove('show-tip'); $('#offerModal').classList.add('show'); track('offer_open', {}); const d = store.get('weiz_age_offer_done'); if (d) $('#leadCard').innerHTML = '<h2>已領取 WEiZ 專屬優惠</h2><p class="lead-done">折扣碼會寄到你的信箱，記得看一下垃圾郵件匣。</p>'; else setTimeout(() => { try { $('#leadEmail').focus({ preventScroll:true }); } catch(e){} }, 150); });
+$('#offerFab').addEventListener('click', () => { $('#offerModal').classList.add('show'); track('offer_open', {}); const d = store.get('weiz_age_offer_done'); if (d) $('#leadCard').innerHTML = '<h2>已領取 WEiZ 專屬優惠</h2><p class="lead-done">折扣碼會寄到你的信箱，記得看一下垃圾郵件匣。</p>'; else setTimeout(() => { try { $('#leadEmail').focus({ preventScroll:true }); } catch(e){} }, 150); });
 $('#offerClose').addEventListener('click', () => $('#offerModal').classList.remove('show'));
 $('#offerModal').addEventListener('click', e => { if (e.target.id==='offerModal') $('#offerModal').classList.remove('show'); });
 document.querySelectorAll('[data-back]').forEach(b => { b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>'; });
