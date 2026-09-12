@@ -29,12 +29,16 @@ async def fresh(b, url=P, mobile=True, args=None):
 
 async def to_quiz(pg, decade=2):
     await pg.click('#startBtn'); await pg.wait_for_timeout(350)
-    await pg.locator('.decade').nth(decade).click(); await pg.wait_for_timeout(600)
+    await pg.locator('.decade').nth(decade).click(); await pg.wait_for_timeout(150)
+    await pg.click('#enterBtn'); await pg.wait_for_timeout(600)
+
+async def advance(pg, wait=250):  # v0.9：作答後由玩家按「下一題」
+    await pg.evaluate("next()"); await pg.wait_for_timeout(wait)
 
 async def answer_all(pg, rule='right', per_step=1300):
     for _ in range(15):
         await pg.evaluate(f"(()=>{{const q=quiz[idx]; const r='{rule}'; const ok = r==='right' ? true : r==='wrong' ? false : r==='new' ? q.year>=2011 : r==='old' ? q.year<=2010 : Math.random()<.5; pick(ok? q.answer : (q.answer+1)%4)}})()")
-        await pg.wait_for_timeout(per_step)
+        await pg.wait_for_timeout(120); await advance(pg, min(per_step, 250))
 
 async def main():
     async with async_playwright() as p:
@@ -48,15 +52,18 @@ async def main():
         rec('A 載入', 'A4 題庫載入 50 題、5 年代各 10', await pg.evaluate("BANK.length===50 && ERAS.every(e=>BANK.filter(q=>q.era===e).length===10)"))
         rec('A 載入', 'A5 每題 4 選項且 answer 在 0–3', await pg.evaluate("BANK.every(q=>q.options.length===4 && q.answer>=0 && q.answer<=3)"))
         rec('A 載入', 'A6 預設反饋模式 = instant（A/B 關閉）', await pg.evaluate("FEEDBACK_MODE")=='instant')
-        st = await pg.evaluate("[soundMode, AC&&AC.state, document.querySelector('#musicLbl').textContent]")
-        rec('A 載入', 'A7 音訊預設開、未互動前顯示提示', st[0]==2 and (st[1]!='running' and '點一下' in st[2] or st[1]=='running'), str(st))
-        await pg.mouse.click(200, 300); await pg.wait_for_timeout(500)
-        st2 = await pg.evaluate("[AC&&AC.state, musicOn]")
-        rec('A 載入', 'A8 首次點擊後音樂啟動', st2[0]=='running' and st2[1], str(st2))
-        await pg.click('#musicBtn'); await pg.wait_for_timeout(100); m1 = await pg.evaluate("[soundMode,musicOn]")
-        await pg.click('#musicBtn'); await pg.wait_for_timeout(100); m2 = await pg.evaluate("[soundMode,musicOn]")
-        await pg.click('#musicBtn'); await pg.wait_for_timeout(300); m3 = await pg.evaluate("[soundMode,musicOn]")
-        rec('A 載入', 'A9 聲音鈕三態循環 音效＋音樂→靜音→音效→音效＋音樂', m1==[0,False] and m2==[1,False] and m3==[2,True], f'{m1} {m2} {m3}')
+        st = await pg.evaluate("[soundMode, musicOn, document.querySelector('#musicLbl').textContent, document.querySelector('#home [data-sound]').getAttribute('aria-label')]")
+        rec('A 載入', 'A7 音效預設關閉、無障礙名稱一致', st[0]==0 and not st[1] and st[2]=='音效關閉' and '音效關閉' in st[3], str(st))
+        await pg.mouse.click(200, 300); await pg.wait_for_timeout(400)
+        st2 = await pg.evaluate("[soundMode, musicOn]")
+        rec('A 載入', 'A8 點畫面不會自動出聲', st2==[0,False], str(st2))
+        await pg.click('#home [data-sound]'); await pg.wait_for_timeout(150); m1 = await pg.evaluate("[soundMode,musicOn]")
+        await pg.click('#home [data-sound]'); await pg.wait_for_timeout(400); m2 = await pg.evaluate("[soundMode,musicOn,AC&&AC.state]")
+        await pg.click('#home [data-sound]'); await pg.wait_for_timeout(150); m3 = await pg.evaluate("[soundMode,musicOn]")
+        saved = await pg.evaluate("JSON.parse(localStorage.getItem('weiz_age_sound'))")
+        rec('A 載入', 'A9 音效鈕三態循環 關閉→音效→音效＋音樂→關閉，並記住選擇', m1==[1,False] and m2[:2]==[2,True] and m2[2]=='running' and m3==[0,False] and saved==0, f'{m1} {m2} {m3} saved={saved}')
+        await pg.click('#home [data-sound]'); await pg.click('#home [data-sound]'); await pg.wait_for_timeout(300); await pg.reload(); await pg.wait_for_timeout(600)
+        rec('A 載入', 'A10 重新整理後保留音效設定', await pg.evaluate("soundMode")==2)
         await ctx.close()
 
         # ---------- B. 出生年代與抽題 ----------
@@ -69,7 +76,7 @@ async def main():
             await ctx.close()
         ctx, pg, errs = await fresh(b); await pg.click('#startBtn'); await pg.wait_for_timeout(300)
         await pg.locator('.decade').nth(1).click(); await pg.locator('.decade').nth(3).click(); await pg.wait_for_timeout(600)
-        rec('B 抽題', 'B6 年代連點兩個只採第一個', await pg.evaluate("decade")==1)
+        rec('B 抽題', 'B6 年代為單選：改點另一個會換過去，且只有一個被勾選', await pg.evaluate("decade")==3 and await pg.evaluate("[...document.querySelectorAll('.decade[aria-checked=\"true\"]')].length")==1)
         await ctx.close()
 
         # ---------- C. 作答與解答顯示（核心） ----------
@@ -91,10 +98,12 @@ async def main():
             await pg.locator('.opt').nth((choice+2)%4).click(force=True, timeout=2000); await pg.wait_for_timeout(30)
             s2 = await pg.evaluate("answers.length")
             if s2 != k+1: fails.append((k+1, 'double-pick recorded'))
-            await pg.wait_for_timeout(1250)
+            nb = await pg.evaluate("(()=>{const n=document.querySelector('#nextBtn'); return {shown:!n.hidden, label:n.textContent.trim()}})()")
+            if not nb['shown'] or (k==14 and '看結果' not in nb['label']): fails.append((k+1, f'next button {nb}'))
+            await pg.click('#nextBtn'); await pg.wait_for_timeout(300)
             nq = await pg.evaluate("idx")
             if k < 14 and nq != k+1: fails.append((k+1, f'did not advance idx={nq}'))
-        rec('C 作答', 'C3 15 題逐題：正解亮綠／錯選亮紅／氣泡文案／鎖定', not fails, str(fails)[:200])
+        rec('C 作答', 'C3 15 題逐題：正解亮綠／錯選亮紅／文字回饋／鎖定／下一題鈕', not fails, str(fails)[:200])
         rec('C 作答', 'C4 重複點擊不重複計分', all('double' not in str(f) for f in fails))
         await pg.wait_for_timeout(4800)
         rec('C 作答', 'C5 15 題後進入結果頁', await pg.evaluate("document.querySelector('.screen.active').id")=='result')
@@ -105,8 +114,8 @@ async def main():
         await pg.evaluate("deadline = performance.now()+400"); await pg.wait_for_timeout(700)
         s = await pg.evaluate("(()=>{const o=[...document.querySelectorAll('.opt')]; return {right:o.findIndex(x=>x.classList.contains('right')), ans:quiz[idx].answer, to:answers[0]&&answers[0].timedOut, msg:document.querySelector('#footMsg').textContent, mascot:document.querySelector('#qMascot').src===ASSETS.m_sleep}})()")
         rec('C 作答', 'C6 超時：顯示正解、記錄 timedOut、太空人睡著、文案', s['right']==s['ans'] and s['to'] and s['mascot'] and '時間到' in s['msg'], str({k:v for k,v in s.items() if k!='msg'}))
-        await pg.wait_for_timeout(1300)
-        rec('C 作答', 'C7 超時後自動跳下一題', await pg.evaluate("idx")==1)
+        shown = await pg.evaluate("!document.querySelector('#nextBtn').hidden"); await pg.click('#nextBtn'); await pg.wait_for_timeout(300)
+        rec('C 作答', 'C7 超時後出現下一題鈕，按下進入第 2 題', shown and await pg.evaluate("idx")==1)
         # 倒數最後 3 秒轉紅
         await pg.evaluate("deadline = performance.now()+2500"); await pg.wait_for_timeout(200)
         rec('C 作答', 'C8 最後 3 秒倒數環 hot 狀態', await pg.evaluate("document.querySelector('#timer').classList.contains('hot')"))
@@ -114,9 +123,9 @@ async def main():
         await pg.evaluate("clearInterval(timerId); deadline=performance.now()+15000; startTimer()"); await pg.keyboard.press('B'); await pg.wait_for_timeout(80)
         rec('C 作答', 'C9 鍵盤 A–D 可作答', await pg.evaluate("answers.length")==2 and await pg.evaluate("answers[1].chosen")==1)
         # 連對 streak
-        await pg.wait_for_timeout(1300)
+        await advance(pg)
         for _ in range(3):
-            await pg.evaluate("pick(quiz[idx].answer)"); await pg.wait_for_timeout(1250)
+            await pg.evaluate("pick(quiz[idx].answer)"); await pg.wait_for_timeout(100); await advance(pg)
         await pg.evaluate("pick(quiz[idx].answer)"); await pg.wait_for_timeout(80)
         rec('C 作答', 'C10 連對 ≥3 顯示🔥', await pg.evaluate("document.querySelector('#streak').classList.contains('show')"))
         await ctx.close()
@@ -124,9 +133,23 @@ async def main():
         # 快速重測不殘留計時器
         ctx, pg, errs = await fresh(b); await to_quiz(pg, 2)
         await pg.evaluate("pick(quiz[idx].answer)"); await pg.wait_for_timeout(200)
-        await pg.evaluate("start()"); await pg.wait_for_timeout(200); await pg.locator('.decade').nth(0).click(); await pg.wait_for_timeout(700)
+        await pg.evaluate("start()"); await pg.wait_for_timeout(200); await pg.locator('.decade').nth(0).click(); await pg.click('#enterBtn'); await pg.wait_for_timeout(700)
         await pg.wait_for_timeout(1300)
         rec('C 作答', 'C11 反饋中按再測，舊計時器不會把新第 1 題跳掉', await pg.evaluate("idx")==0 and await pg.evaluate("document.querySelector('#qNum').textContent")=='1', f"idx={await pg.evaluate('idx')}")
+        # 離開確認
+        await pg.click('#quiz [data-back]'); await pg.wait_for_timeout(200)
+        m_open = await pg.evaluate("document.querySelector('#leaveModal').classList.contains('show')")
+        await pg.click('#stayBtn'); await pg.wait_for_timeout(200)
+        stayed = await pg.evaluate("document.querySelector('.screen.active').id")=='quiz' and await pg.evaluate("idx")==0
+        await pg.click('#quiz [data-back]'); await pg.wait_for_timeout(200); await pg.click('#leaveBtn'); await pg.wait_for_timeout(300)
+        rec('C 作答', 'C11b 作答中按返回先確認：繼續作答不丟進度、離開回首頁', m_open and stayed and await pg.evaluate("document.querySelector('.screen.active').id")=='home')
+        await ctx.close()
+        # 略過出生年代
+        ctx, pg, errs = await fresh(b); await pg.click('#startBtn'); await pg.wait_for_timeout(300); await pg.click('#skipBtn'); await pg.wait_for_timeout(700)
+        ok_skip = await pg.evaluate("decade")==-1 and await pg.evaluate("document.querySelector('.screen.active').id")=='quiz'
+        await answer_all(pg, 'rand'); await pg.wait_for_timeout(4800)
+        r = await pg.evaluate("({screen:document.querySelector('.screen.active').id, gap:document.querySelector('#rGap').textContent, hash:location.hash, age:+document.querySelector('#rAge').textContent})")
+        rec('C 作答', 'C11c 略過出生年代可完整完成，結果不宣稱年齡差、hash 帶 d=-1', ok_skip and r['screen']=='result' and r['gap']=='' and 'd=-1' in r['hash'] and r['age']>0 and not errs, str(r)[:100])
         await ctx.close()
 
         # 版面穩定：10 題量測關鍵元素位置
@@ -138,7 +161,7 @@ async def main():
             boxes.append(bb); await pg.evaluate("clearInterval(timerId); idx++; render()"); await pg.wait_for_timeout(450)
         stable = all(b_==boxes[0] for b_ in boxes)
         rec('C 作答', 'C12 版面固定：10 題視覺區／題目／選項／頁尾位置完全一致', stable, str(boxes[0]) if stable else str(boxes[:3]))
-        clip = await pg.evaluate("[...document.querySelectorAll('.opt>span:last-child')].some(s=>s.scrollHeight>s.clientHeight+2)")
+        clip = await pg.evaluate("[...document.querySelectorAll('.opt>span:nth-child(2)')].some(s=>s.scrollHeight>s.clientHeight+2)")
         rec('C 作答', 'C13 選項文字無溢出裁切（抽樣 10 題）', not clip)
         await ctx.close()
 
@@ -167,12 +190,12 @@ async def main():
         h = await pg.evaluate("location.hash"); my_age = await pg.evaluate("lastResult.age")
         await pg.click('#shareBtn'); await pg.wait_for_timeout(500)
         clip = await pg.evaluate("navigator.clipboard.readText().catch(()=>'')")
-        rec('E 分享', 'E1 分享遊戲：無系統分享時複製文字＋遊戲網址（不帶結果）', ('數位年齡' in clip) and (P.split('#')[0] in clip) and ('#a=' not in clip), clip[:80])
+        rec('E 分享', 'E1 分享這個挑戰：無系統分享時複製文字＋挑戰連結', ('數位年齡' in clip) and ('#a=' in clip), clip[:80])
         line = await pg.evaluate("document.querySelector('#lineBtn').href")
         rec('E 分享', 'E1b LINE 挑戰鈕：line.me/R/share 帶結果文字與 #a= 連結', line.startswith('https://line.me/R/share?text=') and '%23a%3D' in line, line[:60])
         await pg.click('#cardBtn'); await pg.wait_for_timeout(1500)
         cv = await pg.evaluate("(()=>{const c=document.getElementById('shareCanvas'); const d=c.getContext('2d').getImageData(540,600,1,1).data; return {w:c.width,h:c.height,shown:document.getElementById('cardprev').classList.contains('show'), px:[...d]}})()")
-        rec('E 分享', 'E2 結果圖卡 1080×1350 產生並預覽', cv['w']==1080 and cv['h']==1350 and cv['shown'] and sum(cv['px'][:3])>0, str(cv))
+        rec('E 分享', 'E2 直式證書 1080×1920 產生並預覽、檔名帶年齡', cv['w']==1080 and cv['h']==1920 and cv['shown'] and sum(cv['px'][:3])>0 and await pg.evaluate("cardBlob && cardBlob.size>10000 && certFileName(lastResult)===`WEiZ_數位年齡證書_${lastResult.age}歲.png`"), str(cv))
         await pg.click('#closeCardBtn'); await pg.wait_for_timeout(200)
         rec('E 分享', 'E3 圖卡可關閉', not await pg.evaluate("document.getElementById('cardprev').classList.contains('show')"))
         await pg.reload(); await pg.wait_for_timeout(800)
@@ -183,7 +206,7 @@ async def main():
         ctx, pg, errs = await fresh(b, P+h)
         g = await pg.evaluate("({screen:document.querySelector('.screen.active').id, whose:document.querySelector('#rWhose').textContent, who2:document.querySelector('#rWho2').textContent, chal:document.querySelector('#challengeBtn').offsetParent!==null, own:document.querySelector('#ownerActions').style.display, lead:document.querySelector('#leadCard').style.display, age:+document.querySelector('#rAge').textContent, challenger})")
         rec('E 分享', 'E4 朋友開連結：結果頁、「朋友的」、只顯示換我測、隱藏名單卡', g['screen']=='result' and g['whose']=='朋友的數位年齡' and g['who2']=='他的' and g['chal'] and g['own']=='none' and g['lead']=='none' and g['age']==my_age and g['challenger']['age']==my_age, str({k:g[k] for k in ['whose','who2','age']}))
-        await pg.click('#challengeBtn'); await pg.wait_for_timeout(350); await pg.locator('.decade').nth(4).click(); await pg.wait_for_timeout(600)
+        await pg.click('#challengeBtn'); await pg.wait_for_timeout(350); await pg.locator('.decade').nth(4).click(); await pg.click('#enterBtn'); await pg.wait_for_timeout(600)
         await answer_all(pg, 'old'); await pg.wait_for_timeout(4800)
         vs = await pg.evaluate("({show:document.querySelector('#vsCard').style.display!=='none', me:document.querySelector('#vsMe .num').textContent, them:document.querySelector('#vsThem .num').textContent, line:document.querySelector('#vsLine').textContent, note:document.querySelector('#challengeNote').textContent, hash:location.hash})")
         rec('E 分享', 'E5 好友對戰卡：你 vs 朋友、勝負文案、挑戰註記、hash 帶 o=', vs['show'] and str(my_age) in vs['them'] and ('年輕' in vs['line'] or '老' in vs['line'] or '平手' in vs['line']) and str(my_age) in vs['note'] and f"&o={my_age}" in vs['hash'], f"{vs['me']} vs {vs['them']}｜{vs['line']}")
@@ -233,8 +256,8 @@ async def main():
         html = open(os.environ.get('QUIZ_FILE','index.html'),encoding='utf-8').read()
         ctx = await b.new_context(viewport={'width':390,'height':844}); pg = await ctx.new_page(); serr=[]; pg.on('pageerror', lambda e: serr.append(str(e)))
         await pg.set_content('<iframe id=f sandbox="allow-scripts" style="width:390px;height:844px;border:0"></iframe>'); await pg.evaluate("h=>document.getElementById('f').srcdoc=h", html); await pg.wait_for_timeout(1000)
-        f = pg.frame_locator('#f'); await f.locator('#startBtn').click(); await pg.wait_for_timeout(300); await f.locator('.decade').nth(2).click(); await pg.wait_for_timeout(600)
-        for _ in range(15): await f.locator('.opt').first.click(); await pg.wait_for_timeout(1250)
+        f = pg.frame_locator('#f'); await f.locator('#startBtn').click(); await pg.wait_for_timeout(300); await f.locator('.decade').nth(2).click(); await f.locator('#enterBtn').click(); await pg.wait_for_timeout(600)
+        for _ in range(15): await f.locator('.opt').first.click(); await pg.wait_for_timeout(150); await f.locator('#nextBtn').click(); await pg.wait_for_timeout(250)
         await pg.wait_for_timeout(4800)
         rec('H 相容', 'H2 沙箱 iframe（Claude 預覽）完整跑完進結果、無錯誤', await f.locator('.screen.active').get_attribute('id')=='result' and not serr, '; '.join(serr)[:100])
         await ctx.close()

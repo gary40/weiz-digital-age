@@ -1,6 +1,6 @@
 # RELEASE-v0-beta — WEiZ 數位年齡測驗
 
-> 文件版本：20260912_WEiZ營運_數位年齡測驗v0-beta發布報告_v2（v1 為上線前版本）
+> 文件版本：20260912_WEiZ營運_數位年齡測驗v0-beta發布報告_v3（v1 上線前、v2 上線後、v3 加 Y2K 改版）
 > 產出日期：2026-09-12｜狀態：⚠️ AI 產出・待人工審核（風險 B 對外發布，審核人 Gary）
 
 ## 結論（3 行）
@@ -175,6 +175,67 @@ Gary 於 Mac 以 GitHub 網頁建 repo `gary40/weiz-digital-age`，`git push --f
 
 ---
 
+## 11. v0.9-y2k 版面改版（2026-09-12，依「Y2K 版面更新交接規格 v3」與 Gary 三點指示）
+
+### 11-1 這版做了什麼
+
+| 區塊 | 調整 |
+|---|---|
+| 整體 | 深色 Y2K 電玩風：底 #333、靛藍主操作、金色成就、銀色邊框、格線；桌機置中面板 480px；360／390／768／1440 無橫向溢出（已實測） |
+| Top bar | 深色融合＋銀邊分隔；官方白色 Logo 原檔（裁掉透明留白）；首頁無返回鈕；出生年代／結果頁可返回；答題中返回先跳「要離開這一輪挑戰嗎？」確認；掃描頁無返回 |
+| 音效 | **預設關閉**，右上鈕三態（關閉→只開音效→音效＋音樂），選擇存在瀏覽器；**掃描頁停音樂只留掃描音效；結果頁換另一段旋律**（Gary 指示 2）；背景分頁暫停音樂與裝飾動畫 |
+| 首頁 | READY TO PLAY → 標題 → 引導 → 威比（待機浮動、點擊跳一下＋對話泡）→ **單排跑馬燈**（兩份軌道無縫循環、兩端淡出、可暫停／播放、reduced-motion 靜止）→「15 題・直覺快答」→「開始挑戰」；有上次結果時顯示「查看上次結果」 |
+| 出生年代 | radio 語意單選、勾選標記；「進入關卡」選了才能按；**「略過，直接開始」**以 -1 傳遞，計分／分享／證書／後端都能處理，結果不宣稱年齡差 |
+| 闖關答題 | 題序＋計時器＋15 格進度；年代類別一行；**答案單欄**、固定 64px 不跳動；回饋＝文字＋✓✕圖示＋顏色；**選答即停表，按「下一題」才前進**（最後一題「看結果」）；逾時同樣顯示回饋與下一題；防連點 |
+| 記憶掃描 | 「正在整理科技記憶／MEMORY SCAN」；三步驟**依實際進度**打勾：分數已算 → 結果資料備妥 → **證書真的先畫好**；最短 2.4 秒，證書失敗仍進結果頁 |
+| 挑戰結果 | 「挑戰完成」→ 數位年齡面板 → 稱號金牌 → 評語 → 推估百分位 → 三顆按鈕**順序與名稱照規格**：挑戰LINE 好友（LINE 綠）／取得專屬數位年齡證書（靛藍）／分享這個挑戰（深底淺框，系統分享→失敗改複製）→ 對戰卡、記憶年、年代分析、回顧、Email 卡（**同意預設打勾**，Gary 指示 1）、再挑戰一次 |
+| 證書 | **1080×1920 直式 PNG**：Logo → 專屬數位年齡證書 → 大數字 → 稱號 → 威比＋光帶 → 評語 → 「WEiZ 數位年齡測驗・娛樂測驗・依答題內容推估」；上下各 200px 安全區；不含百分位、個資、假 QR；檔名 `WEiZ_數位年齡證書_31歲.png`；預覽外「儲存圖片／分享證書／關閉」；blob 在掃描時就備妥，按下即分享 |
+| 狀態 | 本人重整仍本人；朋友開連結顯示挑戰入口；UTM／挑戰者／結果連結沿用 |
+
+**沒動的**：50 題題庫、抽題計畫、計分公式、稱號、評語、分享文案、Apps Script 端點、GA ID。
+
+### 11-2 規格中我做的判斷（請 Gary 確認）
+
+| 項目 | 規格／指示 | 我的做法 | 原因 |
+|---|---|---|---|
+| 音效預設 | 規格：預設關閉 | 預設關閉，記住玩家選擇 | 依規格；若你想維持之前「預設開」，改一個常數即可 |
+| 百分位 | 規格：不放進新證書 | 證書不放；結果頁保留「比 xx% 的人年輕（推估）」 | 規格只限制證書 |
+| Email 同意 | 規格：預設不勾；Gary 指示 1：預設打勾 | **預設打勾**（以 Gary 為準） | 提醒：預設勾選在個資法實務上較弱，正式上線前建議法務看一眼 |
+| 「分享這個挑戰」 | 系統分享挑戰連結 | 分享**帶本輪結果的挑戰連結**；不支援時複製 | 與 LINE 鈕同一條連結，只是管道不同 |
+| 威比點擊 | 規格：可用單張 PNG，不宣稱揮手 | 跳一下＋對話泡，無揮手 | 單張 PNG |
+| QR | 規格：不強制 | 未加 | — |
+
+### 11-3 GA4 事件對照
+
+| 規格建議名稱 | 實作名稱 | 時機 | 備註 |
+|---|---|---|---|
+| quiz_start | `quiz_start` | 進入第 1 題 | 帶 decade（或 skipped）、variant、challenger |
+| answer_submit | `answer` | 每題選答或逾時 | question_id、position、correct、timed_out、elapsed_ms |
+| quiz_complete | `finish` | 15 題完成 | 沿用舊名稱維持相容；加 right_n、duration_ms、decade_skipped |
+| quiz_abandon | `quiz_abandon` | 答題中確認離開 | position |
+| line_challenge_click | `line_challenge_click` | 按 LINE 鈕 | 不代表已送出 |
+| certificate_open／download／share | `certificate_open`／`certificate_download`／`certificate_share`／`certificate_error` | 開預覽／儲存／系統分享成功／產生失敗 | share 只在 navigator.share 成功 resolve 時記 |
+| share_click／share_cancel | `share_click`／`share_done`／`share_cancel` | 按分享／面板成功／取消 | 取消不記為完成 |
+| copy_link | `copy_link` | 分享面板不可用時複製成功 | — |
+| — | `sound_toggle`、`view_shared`、`lead` | 音效切換／朋友開結果／送出 Email | 沿用 |
+
+不送 Email 或個資到 GA4。
+
+### 11-4 驗證狀態
+
+- **已實測（沙箱 Chromium 141，手機視窗 390×844）**：`acceptance.py` **56／56**（原 51 項改寫成新流程＋新增 A10 音效記憶、C11b 離開確認、C11c 略過年代、E1b LINE 連結、E3b 重整仍本人）；360／768／1440 無溢出；證書 PNG 1080×1920、內容與本輪一致、檔名帶年齡；本人重整／朋友連結／再玩一次狀態正確；Console 無例外（字型 CDN 被沙箱擋的資源錯誤除外）。
+- **靜態檢查**：reduced-motion 樣式、鍵盤操作（A–D／1–4 作答、Enter 下一題、Esc 關閉）、aria 名稱。
+- **未驗證**：iOS Safari／Android Chrome 的存圖、分享面板、取消；LINE 實機跳轉；限動介面遮擋；WebKit 自動化；線上回歸；GA4 DebugView 核對。
+
+### 11-5 啟動／預覽與回復方式
+
+- 本機預覽：`cd weiz-digital-age && python3 -m http.server 8080` → http://localhost:8080/index.html
+- 驗收：`QUIZ_URL=http://localhost:8080/index.html python3 acceptance.py`
+- 截圖：`screenshots/y2k/`（01 首頁、02 出生年代、03 答題回饋、03b 離開確認、04 掃描、05 結果、05b 名單卡、06 證書預覽、07／09 360px、08 桌機）；證書樣本 `screenshots/y2k/certificate-sample.png`
+- **回復**：舊版打了標籤 `v0-beta.2`。要退回：`git checkout v0-beta.2 -- index.html acceptance.py && git commit -m "回復 v0-beta.2" && git push`。資料格式（試算表欄位、結果連結參數）未變，前後版互通。
+
+---
+
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 AI 產出驗證區塊
@@ -190,7 +251,7 @@ Gary 於 Mac 以 GitHub 網頁建 repo `gary40/weiz-digital-age`，`git push --f
 ▸ 已驗證項目：Chromium 141 自動化 51／51；正式網址 curl 200（Gary）；Apps Script GET／POST（Gary 執行 verify-backend.sh）；GA4 gtag 載入與 finish 事件（沙箱模擬）；無聲音檔 duration 0.25 s 且 paused=false；
   再測一次後 location.search 保留；圖卡 blob 1.9 MB 預先產生、下載檔名正確；兩個 script 區塊語法檢查通過；
   commit hash 3c68b9c／813c3c1 取自 git log
-▸ 未確認項目／假設：折扣碼寄送機制與內容（v0-beta.1 文案已承諾，需 Gary 補上）；WebKit 自動化結果；線上回歸；M1–M13 真機結果；
+▸ 未確認項目／假設：v0.9-y2k 在 iOS／Android 實機的存圖、分享、LINE 跳轉；折扣碼寄送機制與內容；WebKit 自動化結果；線上回歸；M1–M13 真機結果；
   B1／B3 修正在 iPhone 上的實際效果；LINE 分享預覽；50 題事實年份
 ▸ 風險分級：☑ B 對外發布（測驗將公開給測試者與社群）
 ▸ 建議審核人：Gary
