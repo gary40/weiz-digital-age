@@ -306,6 +306,27 @@ async def main():
             await ctx.close()
         rec('I 穩定', 'I1 5 個年代各完整隨機跑一輪：皆進結果、答案 15 筆、無錯誤', not fails, str(fails))
 
+        # ---------- J. 資料強化（v1.2）：結果欄位、答題明細、事件鏡射、名單標籤 ----------
+        ctx, pg, errs = await fresh(b, P)
+        posts = []
+        pg.on('request', lambda r: posts.append(r.post_data) if r.method=='POST' and 'script.google.com' in r.url and r.post_data else None)
+        await to_quiz(pg, 1); await answer_all(pg, 'new'); await pg.wait_for_timeout(2500)
+        await pg.click('#shareBtn'); await pg.wait_for_timeout(200); await pg.click('#sheetClose'); await pg.wait_for_timeout(2200)
+        bodies = [json.loads(x) for x in posts if x and x.startswith('{')]
+        res = next((b_ for b_ in bodies if b_.get('type')=='result'), {}); ans = next((b_ for b_ in bodies if b_.get('type')=='answers'), {}); evs = [e for b_ in bodies if b_.get('type')=='event' for e in b_.get('events', [])]
+        rec('J 資料', 'J1 結果 POST 帶時長／裝置／標籤等新欄位', all(k in res for k in ['duration_ms','avg_ms','streak_max','timeout_n','device','os','browser','tags','visit_n','retake_n']) and res.get('device') in ('mobile','desktop','tablet') and 'ahead' in res.get('tags','') and res.get('attempt_id'), str({k:res.get(k) for k in ['duration_ms','device','os','browser','tags']}))
+        rec('J 資料', 'J2 答題明細 POST：15 列、每列有題號／順序／選項／對錯／毫秒，attempt 與結果一致', len(ans.get('rows',[]))==15 and all(set(['q_id','pos','chosen','correct','timed_out','ms','era']).issubset(r) for r in ans['rows']) and [r['pos'] for r in ans['rows']]==list(range(1,16)) and ans.get('attempt_id')==res.get('attempt_id'), f"rows={len(ans.get('rows',[]))}")
+        names = [e['event'] for e in evs]
+        rec('J 資料', 'J3 事件鏡射：quiz_start／quiz_complete／share_click 進 events 批次，含 detail', all(n in names for n in ['quiz_start','quiz_complete','share_click']) and all('detail' in e and 'ts' in e for e in evs), str(names))
+        ev_ids = set(b_.get('attempt_id') for b_ in bodies if b_.get('type')=='event')
+        rec('J 資料', 'J4 事件與結果同一個 attempt_id', ev_ids=={res.get('attempt_id')}, str(ev_ids))
+        await pg.click('#offerFab'); await pg.wait_for_timeout(300); await pg.fill('#leadEmail', 'gary@weiz.com.tw'); await pg.click('#leadBtn'); await pg.wait_for_timeout(600)
+        bodies = [json.loads(x) for x in posts if x and x.startswith('{')]
+        lead = next((b_ for b_ in bodies if b_.get('email')), {})
+        rec('J 資料', 'J5 名單 POST 帶 tags（含互動標籤 sharer？視操作）與 device', 'tags' in lead and 'ahead' in lead['tags'] and 'device' in lead and '/' in lead['device'], str({k:lead.get(k) for k in ['tags','device']}))
+        rec('J 資料', 'J6 資料強化流程無 JS 錯誤', not errs, '; '.join(errs)[:120])
+        await ctx.close()
+
         await b.close()
     json.dump(R, open('acceptance.json','w'), ensure_ascii=False)
     print('\nPASS', sum(1 for r in R if r[2]=='PASS'), '/', len(R))

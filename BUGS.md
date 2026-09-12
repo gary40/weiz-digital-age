@@ -57,7 +57,7 @@
 | P5 | 結果頁毒舌句改金色引號卡片；Z 圓標加「點我領取 WEiZ 限定優惠券」金色提示；小知識卡內嵌 LINE 加好友動態 CTA | ✅ |
 | P6 | 以上僅在 v4-preview 分支與預覽頁，未部署正式站 | ⏳ 待 Gary 確認 |
 
-## v1.2-preview（11 項回饋）備註
+## v1.2（11 項回饋＋後台資料強化）備註
 
 | # | 事項 | 狀態 |
 |---|---|---|
@@ -69,6 +69,11 @@
 | Q6 | 新增 favicon／apple-touch-icon／manifest；og.png 改深色 Y2K 版（網址加 ?v=2 讓 LINE／FB 重抓） | ⏳ 部署後請用 LINE 傳網址確認預覽圖 |
 | Q7 | 吐槽語新增：各年代答對／答錯各 3 句、結果頁毒舌句 9 句（陣列尾端，舊分享連結的句子索引不變） | ⏳ 待 Gary 審稿（題庫文件黃底 NEW） |
 | Q8 | Playwright 對持續縮放的按鈕會等待「穩定」而逾時，Z 圓標的縮放改套在內層圖示，外框只動陰影 | ✅ |
+| Q9 | 後台資料強化：results 多 16 欄（時長、連對、超時、平均反應、裝置／系統／瀏覽器、來源、時區、第幾次來、再挑戰次數、標籤）；新增 answers（每題一列）、events（行為事件批次，離頁用 sendBeacon）、questions（50 題清單）、question_stats（公式統計）；leads 多 tags／device | ✅ 自動化 J1–J6；⏳ 需 Gary 重新部署 Code.gs v1.2（前端先上不會壞，舊後端只是忽略新欄位、拒收 answers／event） |
+| Q10 | 類型標籤在前端算：ahead／in_sync／behind／no_decade、retro_strong、ai_native、cat_類別、fast／deliberate、timeout_prone、streaker、perfect、challenger、referred、retaker、night_owl、mobile／tablet／desktop；互動標籤 sharer／cert_saver／line_clicker／offer_lead 於名單送出時附上 | ✅ |
+| Q11 | 裝置判定只看 UA：桌機瀏覽器縮成手機寬會被記成 desktop | 📝 可接受 |
+| Q12 | 自訂網域 age.weiz.com.tw：CNAME 已由 Gary 建立、DNS 生效；og:url／og:image／canonical 已改新網域 | ✅ |
+| Q13 | 正式版不顯示「測試版」標籤（?test=1 或 preview 版本才顯示） | ✅ |
 
 ## 驗收腳本本身的誤判（已修，不是程式 bug）
 
