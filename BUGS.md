@@ -15,6 +15,18 @@
 | B6 | 圖卡預覽背景模糊在舊版 iOS 無效 | iOS 16／17 開圖卡 | 只寫了 `backdrop-filter`，Safari 18 以前要 `-webkit-` 前綴 | 補前綴 | ✅ |
 | B7 | 音樂鈕與測試版標籤可能貼到 iPhone 底部手勢條 | 加到主畫面（standalone）開啟 | 沒考慮 `safe-area-inset-bottom` | `bottom: calc(14px + env(safe-area-inset-bottom))` | ✅ |
 
+## v0-beta.2 已修（依 GPT 健檢 v2）
+
+| # | 問題 | 修法 | 狀態 |
+|---|---|---|---|
+| W08 | 本人重整結果頁變朋友視角 | 結果存 localStorage，重整比對網址 | ✅ 自動化 E3b |
+| W09 | 殘留內部驗證區塊 | 移除 | ✅ |
+| W04 | 後端公開明細、無輸入驗證 | Code.gs v0-beta.2（需重新部署） | ✅ 程式已改，⏳ 待 Gary 部署 |
+| W05 | 同意預設勾選、無政策連結 | 預設不勾＋連結 | ✅ |
+| W01 | 假分布百分位無標示 | 加「（推估）」 | ✅ |
+| W07 | 「比實際」措辭 | 改「比同年代的人」 | ✅ |
+| W06 | GA 缺漏斗事件 | 加 quiz_start／answer／copy_link | ✅ |
+
 ## 驗收腳本本身的誤判（已修，不是程式 bug）
 
 | # | 測項 | 現象 | 原因 | 修法 |
