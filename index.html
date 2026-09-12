@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#333333">
 <meta name="theme-color" content="#333333">
+<meta name="theme-color" content="#333333">
+<meta name="theme-color" content="#333333">
 <title>你的數位年齡是幾歲？｜WEiZ 數位年齡測驗</title>
 <meta name="description" content="15 題 3C 與網路時事快問快答，每題 15 秒，測出你的數位年齡。WEiZ 出品。">
 <meta property="og:title" content="你的數位年齡是幾歲？｜WEiZ 數位年齡測驗">
@@ -39,6 +41,8 @@ body{font-family:var(--font-sans);font-size:16px;line-height:1.6;color:var(--tex
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;-webkit-tap-highlight-color:transparent}
 button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--weiz-gold);outline-offset:2px;border-radius:var(--r-btn)}
 img{display:block;max-width:100%}
+/* 威比在深色底：白色描邊光暈，讓「？」「Zzz」「音符」等深色細節看得見（不改角色原色） */
+.wb{filter:drop-shadow(0 0 1px rgba(255,255,255,.85)) drop-shadow(0 0 5px rgba(255,255,255,.28))}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .pixel{font-family:var(--font-pixel);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-2)}
 
@@ -122,8 +126,8 @@ h1{font-size:34px;font-weight:700;line-height:1.2;letter-spacing:-.02em;text-sha
 .mq-btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--silver-dim);color:var(--muted);display:grid;place-items:center}
 .mq-btn svg{width:14px;height:14px}
 .chip-count{display:inline-flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--silver-dim);border-radius:999px;padding:6px 16px;font-size:13px;font-weight:500;color:var(--muted)}
-.home-count{font-size:12px;color:var(--muted-2)}
-.home-count b{color:var(--weiz-gold)}
+.home-count{font-size:13px;color:var(--muted)}
+.home-count b{color:var(--weiz-gold);font-variant-numeric:tabular-nums;font-size:15px}
 #home .btn-primary{margin-top:var(--sp-05);box-shadow:0 0 0 1px rgba(255,255,255,.15) inset,0 10px 30px rgba(93,89,255,.4)}
 
 /* ===== 出生年代 ===== */
@@ -188,13 +192,26 @@ h1{font-size:34px;font-weight:700;line-height:1.2;letter-spacing:-.02em;text-sha
 
 /* ===== 記憶掃描 ===== */
 #scan{align-items:center;justify-content:flex-start;text-align:center;gap:var(--sp-1)}
-#scan .scan-stage{margin-top:auto}#scan .scan-pct{margin-bottom:auto}
-.scan-stage{position:relative;width:220px;height:220px;display:grid;place-items:center}
-.scan-stage img{width:170px;height:170px;object-fit:contain;position:relative;z-index:1}
-.scan-stage .corner{position:absolute;width:34px;height:34px;border:4px solid var(--weiz-gold)}
-.scan-stage .c1{left:0;top:0;border-right:0;border-bottom:0}.scan-stage .c2{right:0;top:0;border-left:0;border-bottom:0}.scan-stage .c3{left:0;bottom:0;border-right:0;border-top:0}.scan-stage .c4{right:0;bottom:0;border-left:0;border-top:0}
-.scan-line{position:absolute;left:-30px;right:-30px;height:4px;background:linear-gradient(90deg,transparent,var(--weiz-gold),transparent);box-shadow:0 0 22px var(--weiz-gold);top:10%;animation:sweep 1.6s ease-in-out infinite alternate;z-index:0}
+#scan .scan-scene{margin-top:auto}#scan .scan-pct{margin-bottom:auto}
+/* 掃描場景：威比舉自拍棒上的手機當掃描器，光束掃右側的記憶卡疊 */
+.scan-scene{position:relative;width:100%;max-width:340px;height:240px;display:grid;grid-template-columns:1fr 1fr;align-items:end;gap:6px}
+.scanner{position:relative;height:230px;display:flex;align-items:flex-end;justify-content:center;transform-origin:50% 100%;animation:scanSwing 1.6s ease-in-out infinite alternate}
+.scanner img{height:200px;width:auto;position:relative;z-index:2}
+/* 光束從手機（圖右上）射向右邊 */
+.scanner .beam{position:absolute;left:66%;top:14%;width:190px;height:150px;transform-origin:0 50%;transform:translateY(-50%);background:linear-gradient(90deg,rgba(252,170,7,.55),rgba(252,170,7,.12) 70%,transparent);clip-path:polygon(0 46%,100% 0,100% 100%,0 54%);filter:blur(1px);animation:beamPulse 1.1s ease-in-out infinite alternate;z-index:1;pointer-events:none}
+.scanner .beam-dot{position:absolute;left:66%;top:14%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:#FFE7A3;box-shadow:0 0 14px 4px rgba(252,170,7,.8);z-index:3;animation:beamPulse 1.1s ease-in-out infinite alternate}
+@keyframes scanSwing{from{transform:rotate(-5deg)}to{transform:rotate(4deg)}}
+@keyframes beamPulse{from{opacity:.55}to{opacity:1}}
+.mem-stack{position:relative;height:210px;display:grid;gap:8px;align-content:center;padding:14px 12px;background:rgba(0,0,0,.18);border-radius:14px}
+.mem-stack .corner{position:absolute;width:26px;height:26px;border:3px solid var(--weiz-gold)}
+.mem-stack .c1{left:-2px;top:-2px;border-right:0;border-bottom:0}.mem-stack .c2{right:-2px;top:-2px;border-left:0;border-bottom:0}.mem-stack .c3{left:-2px;bottom:-2px;border-right:0;border-top:0}.mem-stack .c4{right:-2px;bottom:-2px;border-left:0;border-top:0}
+.mem{display:block;font-size:13px;font-weight:700;text-align:center;padding:6px 8px;border-radius:8px;border:1px solid var(--silver-dim);background:var(--surface-2);color:var(--muted-2);letter-spacing:.02em;transition:all .35s var(--ease)}
+.mem.lit{color:#3A2700;background:linear-gradient(135deg,#FCAA07,#FDD403);border-color:#FFE7A3;box-shadow:0 0 14px rgba(252,170,7,.55)}
+.mem.lit::after{content:' ✓'}
+.mem-line{position:absolute;left:-14px;right:-14px;height:3px;background:linear-gradient(90deg,transparent,#FFE7A3,transparent);box-shadow:0 0 18px var(--weiz-gold);top:8%;animation:sweep 1.6s ease-in-out infinite alternate;z-index:2;pointer-events:none}
 @keyframes sweep{from{top:8%}to{top:92%}}
+body.paused .scanner,body.paused .mem-line,body.paused .beam,body.paused .beam-dot{animation-play-state:paused}
+@media(max-width:360px){.scan-scene{height:220px}.scanner img{height:180px}.mem{font-size:12px;padding:5px 6px}}
 .scan-title{font-size:26px;font-weight:700;letter-spacing:-.01em}
 .scan-steps{display:grid;gap:10px;width:100%;max-width:320px;text-align:left;background:var(--surface-2);border:1px solid var(--silver-dim);border-radius:var(--r-card);padding:var(--sp-05) var(--sp-1)}
 .step{display:flex;align-items:center;gap:12px;font-size:15px;color:var(--muted-2);transition:color .3s var(--ease)}
@@ -335,13 +352,13 @@ body.paused .orb,body.paused .marquee .track,body.paused .mascot-wrap img,body.p
     <span class="eyebrow pixel">Ready to play</span>
     <h1>你的<b>數位年齡</b><br>是幾歲？</h1>
     <p class="lead">從撥接聲到 AI，15 題直覺快答，看你的科技記憶停在哪一年。</p>
-    <button class="mascot-wrap" id="mascotBtn" aria-label="威比，點一下打招呼"><span class="glow"></span><img data-asset="m_selfie" src="" alt=""><span class="hi" id="mascotHi">嗨！準備好了嗎？</span></button>
+    <button class="mascot-wrap" id="mascotBtn" aria-label="威比，點一下打招呼"><span class="glow"></span><img class="wb" data-asset="m_selfie" src="" alt=""><span class="hi" id="mascotHi">嗨！準備好了嗎？</span></button>
     <div class="marquee-wrap">
       <div class="marquee" id="marquee" aria-label="科技名詞跑馬燈"><div class="track" id="mqTrack"></div></div>
       <button class="mq-btn" id="mqBtn" aria-label="暫停跑馬燈" aria-pressed="false"></button>
     </div>
     <span class="chip-count">15 題・直覺快答</span>
-    <p class="home-count" id="homeCount" style="display:none">已有 <b id="homeCountNum">0</b> 人測過，平均數位年齡 <b id="homeMean">0</b> 歲</p>
+    <p class="home-count" id="homeCount">已有 <b id="homeCountNum">0</b> 人挑戰過<span id="homeMeanWrap" style="display:none">，平均數位年齡 <b id="homeMean">0</b> 歲</span></p>
   </div>
   <button class="btn btn-primary" id="startBtn">開始挑戰 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
   <button class="link" id="lastResultBtn" style="display:none">查看上次結果 ›</button>
@@ -373,7 +390,7 @@ body.paused .orb,body.paused .marquee .track,body.paused .mascot-wrap img,body.p
   <p class="qtext" id="qText"></p>
   <div class="options" id="options"></div>
   <div class="quiz-foot">
-    <div class="feedback"><img id="qMascot" data-asset="m_ponder" src="" alt=""><div class="bubble" id="footMsg" role="status" aria-live="polite">點選答案後按「下一題」</div></div>
+    <div class="feedback"><img id="qMascot" class="wb" data-asset="m_ponder" src="" alt=""><div class="bubble" id="footMsg" role="status" aria-live="polite">點選答案後按「下一題」</div></div>
     <button class="btn btn-primary next" id="nextBtn" hidden>下一題 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
   </div>
 </section>
@@ -381,7 +398,14 @@ body.paused .orb,body.paused .marquee .track,body.paused .mascot-wrap img,body.p
 <!-- 記憶掃描 -->
 <section id="scan" class="screen" aria-label="整理中" aria-live="polite">
   <div class="topbar" style="align-self:stretch"><span></span><img class="logo" data-asset="logo_white" src="" alt="WEiZ"><button class="tb-btn sound" data-sound aria-label="音效關閉"></button></div>
-  <div class="scan-stage"><i class="corner c1"></i><i class="corner c2"></i><i class="corner c3"></i><i class="corner c4"></i><div class="scan-line"></div><img data-asset="m_read" src="" alt=""></div>
+  <div class="scan-scene" aria-hidden="true">
+    <div class="scanner"><img class="wb" data-asset="m_selfie" src="" alt=""><i class="beam"></i><i class="beam-dot"></i></div>
+    <div class="mem-stack" id="memStack">
+      <i class="corner c1"></i><i class="corner c2"></i><i class="corner c3"></i><i class="corner c4"></i>
+      <div class="mem-line"></div>
+      <span class="mem" data-era="0">撥接時代</span><span class="mem" data-era="1">MSN 時代</span><span class="mem" data-era="2">LINE 時代</span><span class="mem" data-era="3">5G 前夕</span><span class="mem" data-era="4">AI 時代</span>
+    </div>
+  </div>
   <div><div class="scan-title">正在整理科技記憶</div><div class="pixel" style="margin-top:6px">Memory scan</div></div>
   <div class="scan-steps">
     <div class="step" data-step="1"><span class="dot"></span>年代線索已整理</div>
@@ -474,6 +498,11 @@ const GA_ID = "G-DSHJT72D4Z"; // GA4 評估 ID（資料串流：數位年齡測�
 const AB_TEST = false;         // true 才會隨機分派 instant／silent 兩組；預設一律顯示解答
 const FEEDBACK_MODE = (new URLSearchParams(location.search).get('v')) || (AB_TEST ? (Math.random()<.5 ? 'instant' : 'silent') : 'instant');
 const DIST_MEAN = 33, DIST_SD = 8; // 百分位用的假分布，正式上線改成真實統計
+// 首頁「已有 N 人挑戰過」：展示用數字，依時間單調成長（同一時刻所有人看到一樣），不取真實人數
+const COUNTER_START = Date.UTC(2026, 8, 12, 4, 0, 0); // 起算時間（UTC）＝台灣 2026-09-12 12:00
+const COUNTER_BASE = 1280;                            // 起算時的數字
+const COUNTER_PER_HOUR = 31;                          // 平均每小時成長
+const COUNTER_WAVE = 80;                              // 日夜起伏幅度（保證仍單調遞增）
 const MARQUEE_TERMS = ['MSN','ICQ','B.B. Call','無名小站','偷菜','Foxy','Wii','iPod','燒光碟','撥接上網','Facebook','LINE','Instagram','TikTok','ChatGPT'];
 const DECADES = [
   { label:'1960 年代以前', sub:'黑白電視・轉盤電話', age:61 },
@@ -753,15 +782,17 @@ function runScan(done){
   show('scan'); stopMusic();
   const steps = document.querySelectorAll('#scan .step'); steps.forEach(s => s.classList.remove('on','done'));
   const cells = $('#scanCells'); cells.innerHTML = ''; for (let i=0;i<12;i++) cells.appendChild(document.createElement('i'));
-  const setPct = p => { $('#scanPct').textContent = p+'%'; cells.querySelectorAll('i').forEach((c,k) => c.classList.toggle('on', k < Math.round(p/100*12))); };
+  const mems = document.querySelectorAll('#memStack .mem'); mems.forEach(m => m.classList.remove('lit'));
+  const setPct = p => { $('#scanPct').textContent = p+'%'; cells.querySelectorAll('i').forEach((c,k) => c.classList.toggle('on', k < Math.round(p/100*12))); mems.forEach((m,k) => m.classList.toggle('lit', p >= (k+1)*20)); };
   setPct(0);
   if (reduceMotion()) { done(); return; }
   const t0 = performance.now(), MIN_MS = 2400;
   const mark = (k, pct) => { steps[k].classList.add('on'); if (k>0) steps[k-1].classList.add('done'); setPct(pct); sfx('scan'); };
-  mark(0, 18); // 年代線索已整理（分數已於 finish 計算）
-  setTimeout(() => mark(1, 52), 700); // 答題結果已計算（結果資料已備妥）
+  mark(0, 20); // 年代線索已整理（分數已於 finish 計算）
+  setTimeout(() => setPct(40), 450);
+  setTimeout(() => mark(1, 60), 800); // 答題結果已計算（結果資料已備妥）
   setTimeout(() => {
-    mark(2, 74);
+    mark(2, 80);
     prepareCertificate(lastResult).catch(()=>{}).then(() => { // 結果卡產生中：真的先把證書畫好
       steps[2].classList.add('done'); setPct(100); sfx('scanDone');
       const wait = Math.max(0, MIN_MS - (performance.now()-t0));
@@ -991,7 +1022,7 @@ async function drawCard(r){
   const mk = g.dir==='younger' ? 'm_young' : g.dir==='older' ? 'm_sleep' : (r.t===1 ? 'm_young' : 'm_selfie'); const m = await loadImg(mk);
   const my = SAFE+830, mh = 400, mw = m.width/m.height*mh;
   const band = c.createLinearGradient(0,my+mh*.55,0,my+mh*.62); band.addColorStop(0,'rgba(252,170,7,0)'); band.addColorStop(.5,'rgba(252,170,7,.75)'); band.addColorStop(1,'rgba(252,170,7,0)'); c.fillStyle = band; c.fillRect(120,my+mh*.55,W-240,mh*.07);
-  c.drawImage(m, (W-mw)/2, my, mw, mh);
+  c.save(); c.shadowColor = 'rgba(255,255,255,.85)'; c.shadowBlur = 10; c.drawImage(m, (W-mw)/2, my, mw, mh); c.restore(); // 白色光暈：深色細節（？、Zzz）在深底上看得見
   // 個人化評語
   c.fillStyle = 'rgba(255,255,255,.1)'; roundRect(c,110,SAFE+1240,W-220,150,24); c.fill(); c.strokeStyle = 'rgba(201,204,214,.45)'; c.lineWidth = 2; c.stroke();
   c.fillStyle = '#fff'; c.font = `400 36px ${FONT}`; c.textAlign = 'left'; wrapText(c, '「'+quipOf(r)+'」', 150, SAFE+1300, W-300, 50); c.textAlign = 'center';
@@ -1039,7 +1070,7 @@ $('#cardprev').addEventListener('click', e => { if (e.target.id==='cardprev') $(
 async function loadStats(){
   if (!STATS_ENDPOINT) return;
   try { const r = await fetch(STATS_ENDPOINT); stats = await r.json();
-    if (stats && stats.count>0) { $('#homeCount').style.display=''; $('#homeCountNum').textContent = Number(stats.count).toLocaleString('zh-Hant-TW'); $('#homeMean').textContent = Math.round(stats.mean); }
+    // 首頁人數改由 paintCounter() 顯示（展示數字與真實數取大者）；平均年齡只在達 REAL_STATS_MIN 後顯示
   } catch(e){}
 }
 function postResult(s){
@@ -1047,7 +1078,16 @@ function postResult(s){
   if (STATS_ENDPOINT) fetch(STATS_ENDPOINT, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload) }).catch(()=>{});
   else console.log('[result]', payload);
 }
-loadStats(); window.__ga && window.__ga(GA_ID);
+// 展示人數：BASE + R·h + A·(1−cos(2πh/24))，導數 R − A·(2π/24)·sin ≥ 0 → 永遠遞增；h 為起算後小時數
+function displayCount(now){ const h = Math.max(0, (now - COUNTER_START) / 36e5); const synthetic = COUNTER_BASE + Math.floor(COUNTER_PER_HOUR*h + COUNTER_WAVE*(1 - Math.cos(2*Math.PI*h/24))); const real = stats && stats.count ? Number(stats.count) : 0; return Math.max(synthetic, real); }
+function paintCounter(animate){
+  const el = $('#homeCountNum'), target = displayCount(Date.now()), cur = +el.textContent.replace(/,/g,'') || 0;
+  if (!animate || reduceMotion() || cur === 0 || target < cur) { el.textContent = target.toLocaleString('zh-Hant-TW'); return; }
+  const t0 = performance.now(), from = cur; const anim = now => { const p = Math.min(1,(now-t0)/600); el.textContent = Math.round(from + (target-from)*p).toLocaleString('zh-Hant-TW'); if (p<1) requestAnimationFrame(anim); }; requestAnimationFrame(anim);
+}
+paintCounter(false); setInterval(() => paintCounter(true), 30000);
+loadStats().then(() => { paintCounter(true); if (stats && stats.count >= REAL_STATS_MIN) { $('#homeMeanWrap').style.display=''; $('#homeMean').textContent = Math.round(stats.mean); } });
+window.__ga && window.__ga(GA_ID);
 // 測試版標記與回饋鈕
 (function(){ const b=document.createElement('a'); b.id='fbBtn'; b.className='beta'; b.target='_blank'; b.rel='noopener'; b.textContent='測試版 '+VERSION+'・回饋'; if (FEEDBACK_URL) { b.href = FEEDBACK_URL + (FEEDBACK_URL.includes('?')?'&':'?') + 'usp=pp_url'; } else { b.href='#'; b.textContent='測試版 '+VERSION; b.style.pointerEvents='none'; } document.body.appendChild(b); })();
 
