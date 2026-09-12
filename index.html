@@ -10,6 +10,9 @@
 <meta name="theme-color" content="#333333">
 <meta name="theme-color" content="#333333">
 <meta name="theme-color" content="#333333">
+<meta name="theme-color" content="#333333">
+<meta name="theme-color" content="#333333">
+<meta name="theme-color" content="#333333">
 <title>你的數位年齡是幾歲？｜WEiZ 數位年齡測驗</title>
 <meta name="description" content="15 題 3C 與網路時事快問快答，每題 15 秒，測出你的數位年齡。WEiZ 出品。">
 <meta property="og:title" content="你的數位年齡是幾歲？｜WEiZ 數位年齡測驗">
@@ -277,6 +280,22 @@ body.paused .scanner,body.paused .mem-line,body.paused .beam,body.paused .beam-d
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .row3 .btn{min-height:44px;font-size:13px;padding:0 6px}
 .sheet-note{min-height:18px;font-size:12px;color:#FFE7A3}
+/* 懸浮 Z 圓標 */
+.fab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:6;width:56px;height:56px;border-radius:50%;background:var(--weiz-indigo-500);color:#fff;box-shadow:0 0 0 3px #2C2C32,0 0 0 5px var(--weiz-gold),0 10px 26px rgba(93,89,255,.45);display:grid;place-items:center;animation:fabIn .4s var(--ease) both}
+.fab[hidden]{display:none}
+.fab .fab-z{display:grid;place-items:center;width:30px;height:30px}
+.fab .fab-z svg{width:30px;height:30px}
+.fab .fab-done{position:absolute;right:-2px;top:-2px;width:20px;height:20px;border-radius:50%;background:var(--weiz-gold);color:#3A2700;font-size:12px;font-weight:700;display:none;place-items:center;border:2px solid #2C2C32}
+.fab.done .fab-done{display:grid}
+.fab .fab-tip{position:absolute;right:66px;top:50%;transform:translateY(-50%);background:#fff;color:#1F1F24;font-size:13px;font-weight:700;padding:8px 12px;border-radius:12px 12px 2px 12px;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .25s}
+.fab.show-tip .fab-tip{opacity:1}
+.fab:hover{background:var(--weiz-indigo-600)}
+.fab:not(.done){animation:fabIn .4s var(--ease) both,fabPulse 2.4s ease-in-out 1s 3}
+@keyframes fabIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+@keyframes fabPulse{0%,100%{box-shadow:0 0 0 3px #2C2C32,0 0 0 5px var(--weiz-gold),0 10px 26px rgba(93,89,255,.45)}50%{box-shadow:0 0 0 3px #2C2C32,0 0 0 9px rgba(252,170,7,.55),0 10px 30px rgba(93,89,255,.6)}}
+@media(min-width:560px){.fab{right:calc(50% - 240px + 14px)}}
+#offerModal .box{padding:12px;gap:8px}
+#offerModal .lead-card{margin:0}
 .challenge-note{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:13px;background:rgba(255,255,255,.08);border:1px solid var(--silver-dim);border-radius:999px;padding:5px 12px;color:var(--muted)}
 .confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:2}
 .confetti i{position:absolute;top:-12px;width:8px;height:14px;border-radius:2px;opacity:.9;animation:fall var(--t,2.4s) cubic-bezier(.3,.6,.4,1) var(--d,0s) 1 both}
@@ -503,13 +522,6 @@ body.paused .orb,body.paused .marquee .track,body.paused .mascot-wrap img,body.p
     </details></div>
     <div class="card" id="reviewCard"><details><summary>回顧題目與解答</summary><div class="review" id="rReview"></div></details></div>
 
-    <div class="card lead-card" id="leadCard">
-      <h2>🎁 領 WEiZ 隱藏版限時折扣碼</h2>
-      <p>測完才有的專屬優惠。留下 Email，折扣碼寄到你信箱，全台平均數位年齡統計出來也第一個通知你。</p>
-      <form class="field" id="leadForm" autocomplete="on" novalidate><input type="email" id="leadEmail" name="email" placeholder="你的 Email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" enterkeyhint="send"><button type="submit" class="btn btn-primary" id="leadBtn">領折扣碼</button></form>
-      <label class="consent"><input type="checkbox" id="leadConsent" checked><span>我同意 WEiZ（汯錡國際）依<a href="https://www.weiz.com.tw/pages/privacy" target="_blank" rel="noopener">隱私權政策</a>使用此 Email 寄送折扣碼、測驗結果與品牌資訊，可隨時回信取消。</span></label>
-    </div>
-
     <button class="btn btn-ghost" id="againBtn">再挑戰一次</button>
     <p class="challenge">Z 世代的 3C 專家 <a href="https://www.weiz.com.tw/?utm_source=social&utm_medium=game&utm_campaign=2026091201&utm_content=v1" target="_blank" rel="noopener">WEiZ</a> 出品・娛樂測驗，結果為推估</p>
   </div>
@@ -530,6 +542,17 @@ body.paused .orb,body.paused .marquee .track,body.paused .mascot-wrap img,body.p
   <div class="row3"><button class="btn btn-outline" data-pf="copy_text">複製文案</button><button class="btn btn-outline" data-pf="copy_link">複製連結</button><button class="btn btn-outline" data-pf="save_image">存證書</button></div>
   <p class="sheet-note" id="sheetNote"></p>
   <button class="btn btn-ghost" id="sheetClose">關閉</button>
+</div></div>
+<!-- 右下角懸浮 Z 圓標：領取 WEiZ 專屬優惠（結果頁本人才顯示） -->
+<button class="fab" id="offerFab" aria-label="領取 WEiZ 專屬優惠" hidden><span class="fab-tip" id="offerTip">領取 WEiZ 專屬優惠</span><span class="fab-z" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M9 10h22v5L18 30h13v5H8v-5l13-15H9z" fill="currentColor"/></svg></span><span class="fab-done" aria-hidden="true">✓</span></button>
+<div class="modal sheet" id="offerModal" role="dialog" aria-modal="true" aria-labelledby="offerTitle"><div class="box">
+  <div class="card lead-card" id="leadCard" style="animation:none">
+    <h2 id="offerTitle">🎁 領取 WEiZ 專屬優惠</h2>
+    <p>測完才有的隱藏版限時折扣碼。留下 Email，折扣碼寄到你信箱，全台平均數位年齡統計出來也第一個通知你。</p>
+    <form class="field" id="leadForm" autocomplete="on" novalidate><input type="email" id="leadEmail" name="email" placeholder="你的 Email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" enterkeyhint="send"><button type="submit" class="btn btn-primary" id="leadBtn">領折扣碼</button></form>
+    <label class="consent"><input type="checkbox" id="leadConsent" checked><span>我同意 WEiZ（汯錡國際）依<a href="https://www.weiz.com.tw/pages/privacy" target="_blank" rel="noopener">隱私權政策</a>使用此 Email 寄送折扣碼、測驗結果與品牌資訊，可隨時回信取消。</span></label>
+  </div>
+  <button class="btn btn-ghost" id="offerClose">先不用</button>
 </div></div>
 <div class="modal" id="leaveModal" role="dialog" aria-modal="true" aria-labelledby="leaveTitle"><div class="box"><h2 id="leaveTitle">要離開這一輪挑戰嗎？</h2><p>離開後本輪作答進度不會保留。</p><div class="row"><button class="btn btn-primary" id="stayBtn">繼續作答</button><button class="btn btn-outline" id="leaveBtn">離開挑戰</button></div></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite">已複製結果，貼到社群分享吧</div>
@@ -555,8 +578,8 @@ const COUNTER_PER_HOUR = 31;                          // 平均每小時成長
 const COUNTER_WAVE = 80;                              // 日夜起伏幅度（保證仍單調遞增）
 const QUIZ_VERSION = '2026-09-12.v1';  // 題庫版本（寫入結果與事件）
 const SCORE_VERSION = 'v1';             // 計分版本（新公式待確認後才會升版）
-const LINE_OA_URL = "";                 // WEiZ LINE 官方帳號加好友連結（未設定則不顯示入口，不假連）
-const SHOW_EMAIL_CARD = false;           // v4：Email 名單卡預設移出主流程；網址加 ?email=1 可強制顯示（QA 用）
+const LINE_OA_URL = "https://www.weiz.com.tw/customer/auth/line?line_action=line_login"; // Gary 提供：WEiZ 官網 LINE 登入／綁定入口（若有 lin.ee 加好友連結可替換）
+const OFFER_FAB = true;                  // Email 名單改為右下角 Z 圓標懸浮按鈕（結果頁本人顯示），點開才出現表單
 const TEST_MODE = new URLSearchParams(location.search).get('test') === '1'; // 測試事件標記，與正式報表區分
 const MARQUEE_TERMS = ['MSN','ICQ','B.B. Call','無名小站','偷菜','Foxy','Wii','iPod','燒光碟','撥接上網','Facebook','LINE','Instagram','TikTok','ChatGPT'];
 const DECADES = [
@@ -589,7 +612,7 @@ const rid = n => { const a = new Uint8Array(n||10); (window.crypto||{}).getRando
 let quiz = [], idx = 0, answers = [], timerId = null, deadline = 0, locked = false, secs = 15, lastResult = null, answered = false;
 const $ = s => document.querySelector(s);
 const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-const show = id => { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); $('#'+id).classList.add('active'); window.scrollTo(0,0); onScreenChange(id); };
+const show = id => { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); $('#'+id).classList.add('active'); window.scrollTo(0,0); if (id !== 'result') { const f = document.querySelector('#offerFab'); if (f) f.hidden = true; } onScreenChange(id); };
 const shuffle = a => { for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch(e){} };
 const guestId = (() => { const k = 'weiz_age_guest'; let g = null; try { g = JSON.parse(localStorage.getItem(k)||'null'); } catch(e){} if (!g) { g = rid(12); try { localStorage.setItem(k, JSON.stringify(g)); } catch(e){} } return g; })();
@@ -946,7 +969,7 @@ function paintResult(r, animate){
   if (!r.guest) $('#lineBtn').href = lineShareHref(r);
   $('#guestActions').style.display = r.guest ? '' : 'none';
   ['#detailCard','#reviewCard','#againBtn','#tipCard'].forEach(s => $(s).style.display = r.guest ? 'none' : '');
-  $('#leadCard').style.display = (!r.guest && (SHOW_EMAIL_CARD || new URLSearchParams(location.search).get('email')==='1')) ? '' : 'none';
+  paintOfferFab(!r.guest);
   const legend = r.t === 1;
   $('.result-hero').classList.toggle('legend', legend); $('#legendBadge').style.display = legend ? '' : 'none';
   const oppAge = r.guest ? r.o : (challenger ? challenger.age : null);
@@ -1065,7 +1088,8 @@ async function submitLead(){
     let res = { ok:true, receipt_id:'local' };
     if (LEAD_ENDPOINT) res = await postJSON(Object.assign(payload, { attempt_id:attemptId, guest_id:guestId, test_mode:TEST_MODE?1:0 })); else console.log('[lead]', payload);
     if (!res || !res.ok) throw new Error(res && res.error || 'no receipt');
-    $('#leadCard').innerHTML = '<h2>收到了！</h2><p class="lead-done">折扣碼會寄到你的信箱，記得看一下垃圾郵件匣。先把測驗丟給朋友，看誰比較老。</p><p class="footnote" style="margin-top:6px">收件編號 ' + esc(res.receipt_id||'') + '</p>';
+    $('#leadCard').innerHTML = '<h2>已領取 WEiZ 專屬優惠 ✓</h2><p class="lead-done">收到了！折扣碼會寄到你的信箱，記得看一下垃圾郵件匣。先把測驗丟給朋友，看誰比較老。</p><p class="footnote" style="margin-top:6px">收件編號 ' + esc(res.receipt_id||'') + '</p>';
+    store.set('weiz_age_offer_done', { at: Date.now(), receipt: res.receipt_id||'' }); $('#offerFab').classList.add('done'); $('#offerFab').setAttribute('aria-label','已領取 WEiZ 專屬優惠'); $('#offerFab').classList.remove('show-tip');
     track('lead_success', {});
   } catch(e) { toast('送出沒有成功，請再試一次'); track('lead_error', { reason: String(e && e.message || e).slice(0,40) }); $('#leadBtn').disabled = false; $('#leadBtn').textContent = '領折扣碼'; }
 }
@@ -1286,6 +1310,16 @@ $('#skipBtn').addEventListener('click', () => { decade = -1; beginQuiz(); });
 $('#shareBtn').addEventListener('click', share);
 $('#lineBtn').addEventListener('click', () => track('line_challenge_click', {}));
 $('#leadForm').addEventListener('submit', e => { e.preventDefault(); submitLead(); });
+// 懸浮 Z 圓標：結果頁本人顯示；點開面板留 Email；成功後圓標打勾並記住
+function paintOfferFab(show){
+  const fab = $('#offerFab'); const done = !!store.get('weiz_age_offer_done');
+  fab.hidden = !(OFFER_FAB && show); fab.classList.toggle('done', done);
+  fab.setAttribute('aria-label', done ? '已領取 WEiZ 專屬優惠' : '領取 WEiZ 專屬優惠');
+  if (!fab.hidden && !done) { setTimeout(() => fab.classList.add('show-tip'), 1200); setTimeout(() => fab.classList.remove('show-tip'), 6500); }
+}
+$('#offerFab').addEventListener('click', () => { $('#offerFab').classList.remove('show-tip'); $('#offerModal').classList.add('show'); track('offer_open', {}); const d = store.get('weiz_age_offer_done'); if (d) $('#leadCard').innerHTML = '<h2>已領取 WEiZ 專屬優惠</h2><p class="lead-done">折扣碼會寄到你的信箱，記得看一下垃圾郵件匣。</p>'; else setTimeout(() => { try { $('#leadEmail').focus({ preventScroll:true }); } catch(e){} }, 150); });
+$('#offerClose').addEventListener('click', () => $('#offerModal').classList.remove('show'));
+$('#offerModal').addEventListener('click', e => { if (e.target.id==='offerModal') $('#offerModal').classList.remove('show'); });
 document.querySelectorAll('[data-back]').forEach(b => { b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>'; });
 document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => {
   const to = b.dataset.back;
@@ -1299,7 +1333,7 @@ $('#leaveModal').addEventListener('click', e => { if (e.target.id==='leaveModal'
 function paintHomeExtras(){ const own = store.get('weiz_age_own'); $('#lastResultBtn').style.display = own && own.hash ? '' : 'none'; }
 $('#lastResultBtn').addEventListener('click', () => { const own = store.get('weiz_age_own'); if (!own) return; try { history.replaceState(null,'', own.hash); } catch(e){} if (!fromHash()) show('home'); });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { $('#leaveModal').classList.remove('show'); $('#cardprev').classList.remove('show'); $('#shareSheet').classList.remove('show'); return; }
+  if (e.key === 'Escape') { ['#leaveModal','#cardprev','#shareSheet','#offerModal'].forEach(s => $(s).classList.remove('show')); return; }
   if (!$('#quiz').classList.contains('active') || $('#leaveModal').classList.contains('show')) return;
   if ((e.key === 'Enter' || e.key === ' ') && answered && document.activeElement && document.activeElement.tagName !== 'BUTTON') { e.preventDefault(); next(); return; }
   const k = e.key.toUpperCase(); const i = 'ABCD'.indexOf(k) >= 0 ? 'ABCD'.indexOf(k) : ('1234'.indexOf(k));

@@ -247,7 +247,7 @@ Gary 於 Mac 以 GitHub 網頁建 repo `gary40/weiz-digital-age`，`git push --f
 | §2 流程 | 五頁流程、本人重整、朋友入口、再玩一次新 attempt | ✅ | 每輪產生 attempt_id；guest_id 存本機 |
 | §3 題庫 | 12 計分＋3 偏好、欄位擴充、逐題查證、新計分、稱號規則、移除百分位、可比題組 | ⏳ 部分 | **已做**：移除百分位（結果頁與證書）；QUIZ_VERSION／SCORE_VERSION 寫入結果與事件。**未做（需確認）**：偏好題、題庫欄位擴充、新計分公式、稱號規則表、固定題組 challenge_id（見 12-3） |
 | §4 結果與分享 | 三按鈕、平台面板 Threads／IG／FB、文案模板、由玩家確認發布 | ✅ | 第三顆改「分享到 Threads／IG／FB」；面板含 Threads（web intent 預填文字＋連結）、Instagram（存證書＋複製文案＋指引）、Facebook（sharer 帶連結）、系統分享、複製文案、複製連結、存證書；曬證書文案照模板；沒有經歷答案 → 「本輪科技關鍵字」「這些你也認得嗎？」 |
-| §5 證書 | 加關鍵字、四顆按鈕、小知識卡、官方 LINE 入口、Email 移出主流程 | ✅ | 證書多「本輪科技關鍵字」（自動縮字不溢出）；按鈕：儲存證書／曬證書到 Threads／IG／FB／複製分享文案／關閉；小知識卡 50 題各一則（優先答錯題，全對給延伸）；LINE OA 入口以 `LINE_OA_URL` 控制，**未填不顯示**；Email 卡預設隱藏（`?email=1` 可開） |
+| §5 證書 | 加關鍵字、四顆按鈕、小知識卡、官方 LINE 入口、Email 移出主流程 | ✅ | 證書多「本輪科技關鍵字」（自動縮字不溢出）；按鈕：儲存證書／曬證書到 Threads／IG／FB／複製分享文案／關閉；小知識卡 50 題各一則（優先答錯題，全對給延伸）；LINE 入口已填 Gary 提供的 `https://www.weiz.com.tw/customer/auth/line?line_action=line_login`（官網 LINE 登入／綁定頁；**若有 lin.ee 加好友連結建議替換**，入口文案為「加入 WEiZ LINE 好友」）；Email 依 Gary 決定保留，改為**結果頁右下角 Z 圓標懸浮按鈕**「領取 WEiZ 專屬優惠」，點開面板填寫，成功後圓標打勾並記住 |
 | §6 推薦碼 | share_id、三種來源欄位、bot 排除、自願 LINE 綁定 | ⏳ 部分 | **已做**：每次分享產生不可推測 share_id，連結帶 `s=`／`p=`，shares 表記 attempt／guest／平台／內容類型／parent_share_id；訪客首次有效互動才記 referral_visit；UTM（首次行銷來源）、p（本站分享入口）、referrer host 分開記錄。**未做**：LINE Login／LIFF 綁定（需 HTTPS 後端與 channel） |
 | §7 事件 | 命名、對照表、不重複、test_mode | ✅ | 對照見 12-2；`?test=1` 全部事件與後端列標 test_mode=1 |
 | §8 架構 | 可讀回應＋receipt_id、去重、限流、SQL 選型 | ⏳ 部分 | **已做**：POST 改 CORS 可讀，後端回 `{ok, receipt_id}`，名單只在 ok 才顯示成功；attempt_id／share_id 去重；欄位白名單沿用。**未做**：限流、SQL／正式後端（需選型）。**待 Gary 實機確認**：Apps Script 跟隨轉址後的 CORS 讀取（沙箱無法連 Google） |
@@ -277,12 +277,12 @@ Gary 於 Mac 以 GitHub 網頁建 repo `gary40/weiz-digital-age`，`git push --f
 
 ### 12-3 需要 Gary 集中決定（v4 §9）
 
-1. **WEiZ 官方 LINE 加好友連結**：填入 `LINE_OA_URL` 後入口才會出現（目前不顯示、不假連）。
+1. ~~WEiZ 官方 LINE 加好友連結~~ ✅ 已填（官網 LINE 登入頁）。備註：這不是 LINE 官方帳號的「加好友」連結（lin.ee／@ID），點了會到 WEiZ 官網會員 LINE 登入；若目標是累積 OA 好友，請提供 LINE OA 後台的加好友網址替換。
 2. **新計分公式與稱號規則**：v4 要求知識分數與記憶年代分離、稱號依規則表。我建議下一輪先給你「10 個固定題組案例」的對照表（舊分數 vs 新分數 vs 稱號）供確認，確認前 SCORE_VERSION 維持 v1。
 3. **偏好／經歷題**：要加 3 題偏好題（不計分）就要改題庫結構與 12＋3 配置，請確認題目來源。
 4. **後端選型**：Apps Script＋Sheets 能撐測試期；正式流量、限流、LINE Login 需 HTTPS 後端（Cloudflare Workers＋D1 或 Supabase 是低成本選項）。請給預期流量、費用上限、維運負責人。
 5. **LINE Login／LIFF**：需要 channel、provider、redirect URI、後端秘密配置；未配置前不做，不放假登入。
-6. **個資**：保留期限、用途告知、撤回／刪除流程；Email 卡目前預設隱藏，是否保留。
+6. ~~Email 卡去留~~ ✅ 保留，改為右下角 Z 圓標（Gary 決定）。個資保留期限與撤回流程仍待定，文案已寫「可隨時回信取消」。
 7. **Meta 分享能力**：Threads web intent 只帶文字＋連結、IG 無網頁預填、FB sharer 只帶連結，都已依此設計 fallback；若要「一鍵帶圖」需各平台 App／API 授權，另案評估。
 
 ### 12-4 部署與回復

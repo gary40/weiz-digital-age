@@ -214,7 +214,8 @@ async def main():
         # 朋友視角
         ctx, pg, errs = await fresh(b, P+h)
         g = await pg.evaluate("({screen:document.querySelector('.screen.active').id, whose:document.querySelector('#rWhose').textContent, who2:document.querySelector('#rWho2').textContent, chal:document.querySelector('#challengeBtn').offsetParent!==null, own:document.querySelector('#ownerActions').style.display, lead:document.querySelector('#leadCard').style.display, age:+document.querySelector('#rAge').textContent, challenger})")
-        rec('E 分享', 'E4 朋友開連結：結果頁、「朋友的」、只顯示換我測、隱藏名單卡', g['screen']=='result' and g['whose']=='朋友的數位年齡' and g['who2']=='他的' and g['chal'] and g['own']=='none' and g['lead']=='none' and g['age']==my_age and g['challenger']['age']==my_age, str({k:g[k] for k in ['whose','who2','age']}))
+        g['fab'] = await pg.evaluate("document.querySelector('#offerFab').hidden")
+        rec('E 分享', 'E4 朋友開連結：結果頁、「朋友的」、只顯示換我測、不顯示優惠圓標', g['screen']=='result' and g['whose']=='朋友的數位年齡' and g['who2']=='他的' and g['chal'] and g['own']=='none' and g['fab'] and g['age']==my_age and g['challenger']['age']==my_age, str({k:g[k] for k in ['whose','who2','age']}))
         await pg.click('#challengeBtn'); await pg.wait_for_timeout(350); await pg.locator('.decade').nth(4).click(); await pg.click('#enterBtn'); await pg.wait_for_timeout(600)
         await answer_all(pg, 'old'); await pg.wait_for_timeout(4800)
         vs = await pg.evaluate("({show:document.querySelector('#vsCard').style.display!=='none', me:document.querySelector('#vsMe .num').textContent, them:document.querySelector('#vsThem .num').textContent, line:document.querySelector('#vsLine').textContent, note:document.querySelector('#challengeNote').textContent, hash:location.hash})")
@@ -235,9 +236,9 @@ async def main():
 
         # ---------- F. 名單 ----------
         ctx, pg, errs = await fresh(b); await to_quiz(pg, 2); await answer_all(pg, 'rand'); await pg.wait_for_timeout(4800)
-        rec('F 名單', 'F0 v4：Email 名單卡預設不在主流程；科技小知識卡有出現', await pg.evaluate("document.querySelector('#leadCard').style.display==='none' && document.querySelector('#tipCard').style.display!=='none' && document.querySelector('#tipBody').textContent.length>10"))
-        await ctx.close()
-        ctx, pg, errs = await fresh(b, P.replace('.html','.html?email=1')); await to_quiz(pg, 2); await answer_all(pg, 'rand'); await pg.wait_for_timeout(4800)
+        rec('F 名單', 'F0 Email 不在主流程：右下角 Z 圓標可見、小知識卡有出現、LINE OA 入口有連結', await pg.evaluate("!document.querySelector('#offerFab').hidden && document.querySelector('#tipCard').style.display!=='none' && document.querySelector('#tipBody').textContent.length>10 && document.querySelector('#oaCard').style.display!=='none' && document.querySelector('#oaCard').href.includes('weiz.com.tw')"))
+        await pg.click('#offerFab'); await pg.wait_for_timeout(300)
+        rec('F 名單', 'F0b 點圓標開優惠面板，表單可見', await pg.evaluate("document.querySelector('#offerModal').classList.contains('show') && document.querySelector('#leadEmail').offsetParent!==null"))
         await pg.fill('#leadEmail', 'not-an-email'); await pg.click('#leadBtn'); await pg.wait_for_timeout(200)
         t1 = await pg.evaluate("document.querySelector('#toast').textContent")
         rec('F 名單', 'F1 Email 格式錯誤被擋', '格式' in t1 and await pg.evaluate("!!document.querySelector('#leadBtn')"))
@@ -250,7 +251,9 @@ async def main():
         pg.on('console', _grab)
         pg.on('request', lambda r: logs.append(r.post_data) if r.method=='POST' and r.post_data and '"email"' in r.post_data else None)  # 已設 LEAD_ENDPOINT：抓送出的 POST 內容
         await pg.click('#leadBtn'); await pg.wait_for_timeout(400)
-        rec('F 名單', 'F3 後端回 ok 才顯示「收到了」（含收件編號）、payload 含 email／年齡／出生年代', '收到了' in await pg.evaluate("document.querySelector('#leadCard').textContent") and '收件編號' in await pg.evaluate("document.querySelector('#leadCard').textContent") and any('gary@weiz.com.tw' in l and '1980' in l for l in logs), (logs[0][:120] if logs else 'no log'))
+        rec('F 名單', 'F3 後端回 ok 才顯示「已領取」（含收件編號）、圓標打勾、payload 含 email／年齡／出生年代', '已領取' in await pg.evaluate("document.querySelector('#leadCard').textContent") and '收件編號' in await pg.evaluate("document.querySelector('#leadCard').textContent") and await pg.evaluate("document.querySelector('#offerFab').classList.contains('done')") and any('gary@weiz.com.tw' in l and '1980' in l for l in logs), (logs[0][:120] if logs else 'no log'))
+        await pg.reload(); await pg.wait_for_timeout(800)
+        rec('F 名單', 'F4 重整後圓標維持已領取狀態', await pg.evaluate("document.querySelector('#offerFab').classList.contains('done') && !document.querySelector('#offerFab').hidden"))
         await ctx.close()
 
         # ---------- G. 掃描動畫與結果音效 ----------
