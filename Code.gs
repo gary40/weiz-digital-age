@@ -1,12 +1,12 @@
 /**
- * WEiZ 數位年齡測驗 — Apps Script 後端 v1.3（v1.2 全部功能 + 自動寄送折扣碼信件；Gary 已確認內容與版面，預設關閉待你啟用）
+ * WEiZ 數位年齡測驗 — Apps Script 後端 v1.3（v1.2 全部功能 + 自動寄送折扣碼信件；Gary 已確認內容版面並核准開始寄信）
  * 部署：Google 試算表 → 擴充功能 → Apps Script → 全部取代成這份 → 部署 → 管理部署作業 → 鉛筆 → 版本「新版本」→ 部署（網址不變）
  *      執行身分：我；存取權：任何人。
  * 第一次部署後，可在編輯器手動執行一次 setupSheets()（會建立 questions／question_stats／answers／events／mail_log 分頁）；
  * 不執行也沒關係，第一筆資料進來時會自動建立。
  *
- * === 重要：自動寄信預設關閉（MAIL_ENABLED = false），部署這份不會馬上寄出任何信 ===
- * 要啟用前，請照下面「啟用寄信的步驟」一步一步做，不要跳過測試信那步。
+ * === 重要：MAIL_ENABLED 已改成 true（2026-09-13 Gary 核准），部署這份 + 設好時間驅動觸發器後就會真的開始寄送折扣碼信 ===
+ * 部署後別忘了做「啟用寄信的步驟」第 5 步設定時間驅動觸發器，沒設觸發器 sendPendingMail() 不會自動被呼叫，不會有任何信寄出。
  *
  * v1.2 變更（已包含在這份）：
  * - results 新增：duration_ms、streak_max、timeout_n、avg_ms、device、os、browser、screen_h、referrer_host、lang、tz、visit_n、retake_n、decade_skipped、sound_mode、tags
@@ -29,12 +29,12 @@
  * 0. 前提：MAIL_FROM_ADDRESS 這個別名要先在 Gmail 設定裡「帳戶和匯入」→「代表下列地址寄送」加好（同網域別名，Google 通常不需要另外寄驗證信）。
  *    在 Apps Script 編輯器隨便挑個函式執行一次（例如 sendTestMail），第一次會跳出「未經驗證」的授權畫面，
  *    選「進階」→「前往（專案名稱）(不安全)」→ 允許權限，這是因為改用 GmailApp 需要比 MailApp 更高的寄信權限範圍。
- * 1. 把下面 MAIL_COUPON_CODE／MAIL_COUPON_EXPIRE 改成真的折扣碼與到期日；MAIL_TEST_TO 填你自己的信箱。
- * 2. 部署這份程式碼（部署 → 新版本）。
- * 3. 在 Apps Script 編輯器選函式 sendTestMail，按執行 → 去自己信箱看預覽信，確認寄件人顯示 info@weiz.com.tw、文案／版面滿意再繼續。
- * 4. 確定要正式寄送後，把 MAIL_ENABLED 改成 true，決定 MAIL_BACKFILL_EXISTING 要不要補寄給啟用前的舊名單，重新部署一次。
- * 5. 到 Apps Script 左側「觸發條件」→「新增觸發條件」→ 選函式 sendPendingMail → 事件來源「時間驅動」→ 「分鐘計時器」選「每 15 分鐘」（或你想要的頻率）→ 儲存。
- * 6. 之後新名單會在你設定的頻率內自動收到信，戰情室的「寄信統計」分頁會顯示寄送狀況（部署後、Claude 下次同步就看得到）。
+ * 1.（已完成）MAIL_COUPON_CODE／MAIL_COUPON_EXPIRE／MAIL_TEST_TO 都已填好。
+ * 2. 部署這份程式碼（部署 → 新版本），把正式運作的網址換成這份最新版本。
+ * 3.（已完成）sendTestMail 預覽信已確認過寄件人與版面。
+ * 4.（已完成）MAIL_ENABLED 已改成 true；MAIL_BACKFILL_EXISTING 目前是 false＝只寄「啟用那一刻之後」的新名單，不會補寄給部署前已收集到的舊名單（如果也想補寄，把這個改成 true 再重新部署一次）。
+ * 5. ▶ 還沒做：到 Apps Script 左側「觸發條件」→「新增觸發條件」→ 選函式 sendPendingMail → 事件來源「時間驅動」→ 「分鐘計時器」選「每 15 分鐘」（或你想要的頻率）→ 儲存。沒有這個觸發條件，sendPendingMail() 不會被自動呼叫，不會有任何信寄出。
+ * 6. 設好觸發條件後，新名單會在你設定的頻率內自動收到信，戰情室的「寄信統計」分頁會顯示寄送狀況（Claude 下次同步就看得到）。
  */
 const GS_VERSION = 'v1.3';
 const QUIZ_VERSION_SEED = '2026-09-12.v1';
@@ -52,7 +52,7 @@ const QUESTION_HEADERS = ['q_id','era','era_label','year','category','difficulty
 const MAILLOG_HEADERS = ['ts','email','status','error','coupon_version','lead_row'];
 
 // ===== 自動寄信設定（上線前只需改這一區；MAIL_ENABLED 預設 false，不會自動寄信）=====
-const MAIL_ENABLED = false;              // 真正開始寄送前才改成 true（見檔頭「啟用寄信的步驟」）
+const MAIL_ENABLED = true;               // Gary 已確認開始寄信（2026-09-13）
 const MAIL_BACKFILL_EXISTING = false;     // true＝連啟用前累積的舊名單也補寄；false＝只寄啟用那一刻之後的新名單
 const MAIL_FROM_NAME = 'WEiZ 數位生活研究所';
 const MAIL_FROM_ADDRESS = 'info@weiz.com.tw'; // 要先在 Gmail「代表下列地址寄送」設定裡加好這個別名，GmailApp 才寄得出去（見檔頭步驟 0）
