@@ -1391,6 +1391,20 @@ function saveCertificateBlob(){
 }
 async function saveCertificate(){
   if (!(cardBlob && cardFor === lastResult)) { try { $('#cardStatus').textContent = '證書產生中…'; await prepareCertificate(lastResult); } catch(e){ $('#cardStatus').textContent = '證書產生失敗，請再按一次重試'; track('certificate_error', { where:'save' }); return; } }
+  if (navigator.share && navigator.canShare) { // 優先用系統分享的「儲存影像」選項，才是真的一步存進手機相簿；<a download> 在 iPhone 上只會進「檔案」App
+    try {
+      const file = new File([cardBlob], certFileName(lastResult), { type:'image/png' });
+      if (navigator.canShare({ files:[file] })) {
+        await navigator.share({ files:[file] });
+        $('#cardStatus').textContent = '已開啟儲存選單，選「儲存影像」就會直接存進手機相簿';
+        track('certificate_download_click', { method:'share' });
+        return;
+      }
+    } catch(e){
+      if (e.name === 'AbortError') { $('#cardStatus').textContent = '已取消'; track('share_cancel', { platform_selected:'save_image', content_type:'certificate' }); return; }
+      // 其他錯誤（例如系統分享被擋）就往下走，改用下載連結保底
+    }
+  }
   if (saveCertificateBlob()) { $('#cardStatus').textContent = '已觸發下載；iPhone 可在「檔案」或長按圖片儲存到相簿'; toast('證書已下載，上傳限動吧'); } else toast('無法自動下載，請長按圖片儲存');
 }
 $('#cardBtn').addEventListener('click', openCard);
