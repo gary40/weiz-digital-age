@@ -1,11 +1,14 @@
 /**
- * WEiZ 數位年齡測驗 — Apps Script 後端 v1.2（名單 + 結果 + 答題明細 + 事件 + 題目清單／統計 + 分享歸因）
+ * WEiZ 數位年齡測驗 — Apps Script 後端 v1.3（v1.2 全部功能 + 自動寄送折扣碼信件；Gary 已確認內容與版面，預設關閉待你啟用）
  * 部署：Google 試算表 → 擴充功能 → Apps Script → 全部取代成這份 → 部署 → 管理部署作業 → 鉛筆 → 版本「新版本」→ 部署（網址不變）
  *      執行身分：我；存取權：任何人。
- * 第一次部署後，可在編輯器手動執行一次 setupSheets()（會建立 questions／question_stats／answers／events 分頁）；
+ * 第一次部署後，可在編輯器手動執行一次 setupSheets()（會建立 questions／question_stats／answers／events／mail_log 分頁）；
  * 不執行也沒關係，第一筆資料進來時會自動建立。
  *
- * v1.2 變更：
+ * === 重要：自動寄信預設關閉（MAIL_ENABLED = false），部署這份不會馬上寄出任何信 ===
+ * 要啟用前，請照下面「啟用寄信的步驟」一步一步做，不要跳過測試信那步。
+ *
+ * v1.2 變更（已包含在這份）：
  * - results 新增：duration_ms、streak_max、timeout_n、avg_ms、device、os、browser、screen_h、referrer_host、lang、tz、visit_n、retake_n、decade_skipped、sound_mode、tags
  * - leads 新增：tags、device（寄信分眾用）
  * - 新增 answers 分頁：每題一列（題號、順序、選的選項、對錯、超時、反應毫秒）
@@ -13,20 +16,54 @@
  * - 新增 questions 分頁（50 題清單，依題庫版本自動寫入）與 question_stats 分頁（公式：作答數、答對率、超時率、平均秒數、選項分布）
  * - GET 回 version，方便 verify-backend.sh 判別版本
  * - 沿用：欄位白名單、長度上限、數值範圍、公式前綴消毒、LockService、attempt 去重、test_mode 排除
+ *
+ * v1.3 新增（自動寄信，預設關閉）：
+ * - leads 新增：mail_status（pending/sent/failed）、mail_sent_at、mail_error
+ * - 新增 mail_log 分頁：每次寄送嘗試一列（成功或失敗都記）
+ * - 新增 sendPendingMail()：批次寄送折扣碼信，要用 Apps Script 的「時間驅動觸發器」排程呼叫（不是這支 API 的 POST/GET，避免和前端流量搶額度）
+ * - 新增 sendTestMail()：手動在編輯器執行，只寄一封預覽信到 MAIL_TEST_TO，不影響 leads 資料，用來先看信件內容
+ * - MAIL_BACKFILL_EXISTING 預設 false：第一次啟用時只寄「啟用那一刻之後」的新名單，不會突然寄給啟用前累積的舊名單
+ * - 用 GmailApp（不是 MailApp）寄送，才能指定 MAIL_FROM_ADDRESS 這個別名當寄件人；quota 檢查仍用 MailApp.getRemainingDailyQuota()（同一組每日額度），Workspace 帳號為 1500 封／天
+ *
+ * ==== 啟用寄信的步驟（Gary 手動操作，Claude 不會、也不能替你送出真正的信）====
+ * 0. 前提：MAIL_FROM_ADDRESS 這個別名要先在 Gmail 設定裡「帳戶和匯入」→「代表下列地址寄送」加好（同網域別名，Google 通常不需要另外寄驗證信）。
+ *    在 Apps Script 編輯器隨便挑個函式執行一次（例如 sendTestMail），第一次會跳出「未經驗證」的授權畫面，
+ *    選「進階」→「前往（專案名稱）(不安全)」→ 允許權限，這是因為改用 GmailApp 需要比 MailApp 更高的寄信權限範圍。
+ * 1. 把下面 MAIL_COUPON_CODE／MAIL_COUPON_EXPIRE 改成真的折扣碼與到期日；MAIL_TEST_TO 填你自己的信箱。
+ * 2. 部署這份程式碼（部署 → 新版本）。
+ * 3. 在 Apps Script 編輯器選函式 sendTestMail，按執行 → 去自己信箱看預覽信，確認寄件人顯示 info@weiz.com.tw、文案／版面滿意再繼續。
+ * 4. 確定要正式寄送後，把 MAIL_ENABLED 改成 true，決定 MAIL_BACKFILL_EXISTING 要不要補寄給啟用前的舊名單，重新部署一次。
+ * 5. 到 Apps Script 左側「觸發條件」→「新增觸發條件」→ 選函式 sendPendingMail → 事件來源「時間驅動」→ 「分鐘計時器」選「每 15 分鐘」（或你想要的頻率）→ 儲存。
+ * 6. 之後新名單會在你設定的頻率內自動收到信，戰情室的「寄信統計」分頁會顯示寄送狀況（部署後、Claude 下次同步就看得到）。
  */
-const GS_VERSION = 'v1.2';
+const GS_VERSION = 'v1.3';
 const QUIZ_VERSION_SEED = '2026-09-12.v1';
-const SHEET_LEADS = 'leads', SHEET_RESULTS = 'results', SHEET_SHARES = 'shares', SHEET_ANSWERS = 'answers', SHEET_EVENTS = 'events', SHEET_QUESTIONS = 'questions', SHEET_QSTATS = 'question_stats';
+const SHEET_LEADS = 'leads', SHEET_RESULTS = 'results', SHEET_SHARES = 'shares', SHEET_ANSWERS = 'answers', SHEET_EVENTS = 'events', SHEET_QUESTIONS = 'questions', SHEET_QSTATS = 'question_stats', SHEET_MAILLOG = 'mail_log';
 const MAX_STR = 200, MAX_UA = 300, DEDUPE_SCAN = 500;
 
 // 既有分頁的舊欄位順序不能動，新欄位一律接在最後（getSheet 會自動補標題）
 const RESULT_HEADERS = ['ts','age','centerYear','newRate','persona','decade','rightN','variant','challenger','utm','attempt_id','guest_id','ref_share_id','entry_platform','quiz_version','score_version','test_mode','receipt_id',
   'duration_ms','streak_max','timeout_n','avg_ms','device','os','browser','screen_h','referrer_host','lang','tz','visit_n','retake_n','decade_skipped','sound_mode','tags'];
-const LEAD_HEADERS   = ['ts','email','age','persona','newRate','centerYear','decade','ref','utm','ua','attempt_id','guest_id','test_mode','receipt_id','tags','device'];
+const LEAD_HEADERS   = ['ts','email','age','persona','newRate','centerYear','decade','ref','utm','ua','attempt_id','guest_id','test_mode','receipt_id','tags','device','mail_status','mail_sent_at','mail_error'];
 const SHARE_HEADERS  = ['ts','share_id','attempt_id','guest_id','platform','content_type','parent_share_id','quiz_version','test_mode'];
 const ANSWER_HEADERS = ['ts','attempt_id','guest_id','q_id','era','year','difficulty','pos','chosen','correct','timed_out','ms','quiz_version','test_mode'];
 const EVENT_HEADERS  = ['ts','attempt_id','guest_id','event','detail','quiz_version','test_mode','client_ts'];
 const QUESTION_HEADERS = ['q_id','era','era_label','year','category','difficulty','question','A','B','C','D','answer','answer_text','keyword','quiz_version'];
+const MAILLOG_HEADERS = ['ts','email','status','error','coupon_version','lead_row'];
+
+// ===== 自動寄信設定（上線前只需改這一區；MAIL_ENABLED 預設 false，不會自動寄信）=====
+const MAIL_ENABLED = false;              // 真正開始寄送前才改成 true（見檔頭「啟用寄信的步驟」）
+const MAIL_BACKFILL_EXISTING = false;     // true＝連啟用前累積的舊名單也補寄；false＝只寄啟用那一刻之後的新名單
+const MAIL_FROM_NAME = 'WEiZ 數位生活研究所';
+const MAIL_FROM_ADDRESS = 'info@weiz.com.tw'; // 要先在 Gmail「代表下列地址寄送」設定裡加好這個別名，GmailApp 才寄得出去（見檔頭步驟 0）
+const MAIL_SUBJECT = '你的 WEiZ 數位年齡限定折扣碼到囉！';
+const MAIL_COUPON_CODE = 'age95off';
+const MAIL_COUPON_DESC = '全館商品 95 折專屬優惠';
+const MAIL_COUPON_EXPIRE = '2026/10/31';
+const MAIL_SHOP_URL = `https://www.weiz.com.tw/?rcode=${MAIL_COUPON_CODE}&utm_source=email&utm_medium=lead&utm_campaign=digital_age_quiz`; // rcode= 直接帶折扣碼，點了會自動套用；跟著 MAIL_COUPON_CODE 走，以後改折扣碼不用兩邊改；後面 utm 參數是原本就有的轉換來源追蹤，保留
+const MAIL_TEST_TO = 'wwisky77@gmail.com'; // 供 sendTestMail 收預覽信
+const MAIL_BATCH_SIZE = 40;               // 每次執行最多寄幾封（時間驅動觸發器每次執行有時間上限，分批較穩）
+const MAIL_PREHEADER = '你的專屬折扣碼已經到囉，內含一鍵前往購物商城連結'; // 收件匣「摘要預覽」文字，跟標題分開設計，Gmail／手機通知欄大多會顯示
 const ERA_LABEL = {"1995-2004": "撥接時代", "2005-2010": "MSN 時代", "2011-2016": "LINE 時代", "2017-2021": "5G 前夕", "2022-2026": "AI 時代"};
 // 題目清單（與前端題庫同版；[id, era, year, category, difficulty, 題目, [A,B,C,D], 正解索引, 關鍵字]）
 const QUESTIONS = [[1,"1995-2004",2000,"平台",1,"「小蕃薯」是給誰用的網站？",["看股票","菜市場叫貨","計程車叫車","小朋友的入口網站，玩遊戲交筆友"],3,"小蕃薯"],[2,"1995-2004",2004,"平台",1,"無名小站當年最紅的功能是？",["線上叫車","美食外送","網路相簿＋部落格","短影音"],2,"無名小站"],[3,"1995-2004",1996,"通訊",1,"B.B. Call 能傳照片嗎？",["可以，黑白照","可以，彩色照","不能，只能顯示數字或短文字","可以，還能傳影片"],2,"B.B. Call"],[4,"1995-2004",1996,"通訊",2,"B.B. Call 數字暗語「7456」是什麼意思？",["生日快樂","我愛你","去洗澡吧","氣死我了"],3,"B.B. Call 暗語"],[5,"1995-2004",1997,"通訊",1,"家裡在撥接上網時，電話會怎樣？",["完全沒影響","鈴聲變大","費率變便宜","占線，別人打不進來"],3,"撥接上網"],[6,"1995-2004",1998,"硬體",2,"一片 3.5 吋磁碟片存得下一首 MP3 嗎？",["存不下，只有 1.44MB","剛好一首","能存一部電影","能存一張專輯"],0,"3.5 吋磁碟片"],[7,"1995-2004",1999,"網路文化",2,"當年光華商場說的「大補帖」是指？",["補習班講義","遊戲攻略本","中藥補品","盜版軟體合輯光碟"],3,"大補帖"],[8,"1995-2004",1998,"軟體",1,"ICQ 的「Uh-oh!」什麼時候會響？",["斷線時","收到訊息時","開機時","對方下線時"],1,"ICQ"],[9,"1995-2004",2000,"網路文化",1,"當年網咖裡最常聽到的遊戲是？",["王者榮耀","傳說對決","世紀帝國、CS","原神"],2,"網咖"],[10,"1995-2004",2001,"硬體",1,"燒壞的光碟片大家都拿來當什麼？",["鏡子","菜刀","滑鼠墊","飛盤、杯墊"],3,"光碟片"],[11,"2005-2010",2006,"軟體",1,"MSN 按「震動」會發生什麼？",["自動播歌","對方手機震動","對方的視窗整個晃動","對方螢幕變黑"],2,"MSN"],[12,"2005-2010",2006,"網路文化",1,"MSN 暱稱大家都拿來寫什麼？",["什麼都不寫","電話號碼","心情文字、歌詞和符號","本名"],2,"MSN 暱稱"],[13,"2005-2010",2009,"網路文化",1,"「開心農場」讓大家半夜爬起來做什麼？",["偷朋友的菜","寫作業","買股票","看新聞"],0,"開心農場"],[14,"2005-2010",2005,"平台",1,"Yahoo!奇摩「知識+」是做什麼的？",["看影片","線上聊天","買東西","發問和回答問題賺點數"],3,"知識+"],[15,"2005-2010",2005,"通訊",2,"用 PHS 手機最常發生什麼？",["收不到簡訊","電池爆炸","太重拿不動","進電梯就斷訊"],3,"PHS"],[16,"2005-2010",2007,"硬體",1,"Eee PC 小筆電為什麼會紅？",["便宜又輕巧","打遊戲最強","相機最好","螢幕最大"],0,"Eee PC"],[17,"2005-2010",2007,"通訊",2,"第一代 iPhone 沒有什麼？",["觸控螢幕","相機","瀏覽器","App Store"],3,"第一代 iPhone"],[18,"2005-2010",2008,"通訊",1,"黑莓機（BlackBerry）最有名的特色是？",["無線充電","實體全鍵盤","三鏡頭","摺疊螢幕"],1,"BlackBerry"],[19,"2005-2010",2006,"軟體",1,"當年下載電影音樂大家都開什麼軟體？",["Foxy、BT、eMule","YouTube Music","Netflix","Spotify"],0,"Foxy"],[20,"2005-2010",2007,"硬體",1,"Wii 最經典的玩法是？",["觸控螢幕","戴 VR 頭盔","揮手把打網球、打保齡球","踩方向盤"],2,"Wii"],[21,"2011-2016",2012,"軟體",1,"LINE 剛紅時大家搶著買什麼？",["LINE 主題曲","LINE 點數卡","熊大兔兔貼圖","LINE 手機殼"],2,"LINE 貼圖"],[22,"2011-2016",2013,"網路文化",1,"神魔之塔紅的時候，大家在捷運上都在？",["拍限動","開直播","轉珠","抓寶"],2,"神魔之塔"],[23,"2011-2016",2016,"網路文化",1,"Pokémon GO 剛上市時，北投公園發生什麼事？",["演唱會","上千人半夜衝去抓寶","跨年晚會","花季"],1,"Pokémon GO"],[24,"2011-2016",2015,"網路文化",2,"自拍棒流行時常被禁止帶進哪裡？",["便利商店","捷運","學校","演唱會和博物館"],3,"自拍棒"],[25,"2011-2016",2012,"平台",1,"早期 Instagram 的照片有什麼特色？",["短影音","長文","正方形＋復古濾鏡","語音留言"],2,"Instagram"],[26,"2011-2016",2013,"網路文化",1,"玩 Candy Crush 沒命了怎麼辦？",["等一天","拜託 Facebook 朋友送愛心","打客服","重灌"],1,"Candy Crush"],[27,"2011-2016",2014,"網路文化",1,"「冰桶挑戰」是為了什麼？",["賣冰塊","為漸凍人症募款","洗腦挑戰","減肥"],1,"冰桶挑戰"],[28,"2011-2016",2016,"硬體",1,"Galaxy Note 7 為什麼被禁止帶上飛機？",["干擾訊號","太大放不下","電池會起火","太貴怕被偷"],2,"Galaxy Note 7"],[29,"2011-2016",2013,"通訊",1,"iPhone 5s 讓大家第一次用什麼解鎖？",["指紋","臉","聲音","畫圖形"],0,"Touch ID"],[30,"2011-2016",2014,"通訊",1,"4G 開台後大家最有感的是？",["手機變小","看影片不卡了","電池變大","通話免費"],1,"4G"],[31,"2017-2021",2018,"通訊",1,"eSIM 是什麼？",["加大版 SIM 卡","電子發票","不用實體卡的 SIM","電子錢包"],2,"eSIM"],[32,"2017-2021",2017,"硬體",1,"AirPods 剛出時被笑成什麼？",["耳朵插電動牙刷頭","耳環","鉛筆","棉花棒"],0,"AirPods"],[33,"2017-2021",2021,"軟體",1,"疫情期間的「實聯制」怎麼做？",["寫紙本","打電話登記","刷健保卡","掃 QR Code 傳簡訊到 1922"],3,"實聯制"],[34,"2017-2021",2018,"平台",1,"抖音／TikTok 讓什麼變流行？",["長文章","15 秒短影音跳舞","語音聊天室","電子書"],1,"TikTok"],[35,"2017-2021",2021,"平台",2,"Clubhouse 當年為什麼一碼難求？",["要有邀請碼才能進","要抽籤","太貴","只有 Android"],0,"Clubhouse"],[36,"2017-2021",2020,"硬體",1,"MagSafe 是什麼？",["保險方案","保護貼","iPhone 的磁吸充電","耳機"],2,"MagSafe"],[37,"2017-2021",2021,"網路文化",2,"NFT 熱潮時最有名的頭像是？",["米老鼠","無聊猿","熊大","皮卡丘"],1,"NFT"],[38,"2017-2021",2020,"網路文化",1,"《動物森友會》為什麼在疫情期間爆紅？",["只出手機版","是 VR 遊戲","大家在遊戲裡串門子聚會","完全免費"],2,"動物森友會"],[39,"2017-2021",2018,"硬體",2,"手機盒上寫的「PD 快充」，PD 是指？",["Portable Device","Pixel Density","Personal Data","Power Delivery"],3,"PD 快充"],[40,"2017-2021",2019,"通訊",2,"Wi-Fi 6 最有感的差別是？",["訊號穿三層牆","不用密碼","能無線充電","很多裝置同時連也不卡"],3,"Wi-Fi 6"],[41,"2022-2026",2022,"軟體",1,"ChatGPT 剛紅時大家最愛拿它做什麼？",["寫作業、寫文案","聽音樂","買菜","叫車"],0,"ChatGPT"],[42,"2022-2026",2023,"硬體",1,"iPhone 15 換成了什麼接頭？",["Lightning","USB-C","3.5mm 耳機孔","Micro-USB"],1,"USB-C"],[43,"2022-2026",2023,"硬體",2,"Qi2 磁吸無線充電是跟誰學的？",["Apple MagSafe","Nintendo","Sony","Nokia"],0,"Qi2"],[44,"2022-2026",2023,"平台",1,"Threads 是哪家公司出的？",["X","ByteDance","Google","Meta"],3,"Threads"],[45,"2022-2026",2024,"硬體",2,"「AI PC」強調內建什麼處理器？",["CRT","NPU","HDD","光碟機"],1,"AI PC"],[46,"2022-2026",2024,"硬體",1,"戴上 Apple Vision Pro 之後怎麼操作？",["用鍵盤","用眼睛看＋手指捏","用聲音吼","用遙控器"],1,"Vision Pro"],[47,"2022-2026",2024,"通訊",1,"iPhone 16 側邊多了什麼鍵？",["相機控制鍵","Home 鍵","返回鍵","靜音鍵"],0,"iPhone 16"],[48,"2022-2026",2025,"硬體",2,"Switch 2 的 Joy-Con 怎麼裝上主機？",["磁吸","螺絲鎖","黏的","滑軌卡入"],0,"Switch 2"],[49,"2022-2026",2023,"網路文化",1,"AI 生圖普及後大家開始擔心什麼？",["假圖假影片分不出來","螢幕太亮","網速太慢","電腦太熱"],0,"AI 生圖"],[50,"2022-2026",2025,"軟體",2,"「Vibe coding」是什麼？",["用講話叫 AI 寫程式","一種直播","一種音樂類型","一種舞蹈"],0,"Vibe coding"]];
@@ -88,7 +125,7 @@ function doPost(e) {
       if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return out({ ok: false, error: 'bad email' });
       const sh = getSheet(ss, SHEET_LEADS, LEAD_HEADERS);
       sh.appendRow([new Date().toISOString(), email, num(p.age, 0, 120), str(p.persona, 30), num(p.newRate, 0, 100), num(p.centerYear, 1990, 2030), str(p.decade, 30), str(p.ref, MAX_STR), str(p.utm, MAX_STR), str(p.ua, MAX_UA),
-        common.attempt, common.guest, common.test, receipt, tags(p.tags), str(p.device, 40)]);
+        common.attempt, common.guest, common.test, receipt, tags(p.tags), str(p.device, 40), '', '', '']); // mail_status／mail_sent_at／mail_error 先空白＝待寄送
       return out({ ok: true, receipt_id: receipt });
     }
     return out({ ok: false, error: 'unknown type' });
@@ -118,7 +155,7 @@ function ensureSetup(ss) {
   const key = GS_VERSION + '/' + QUIZ_VERSION_SEED;
   if (props.getProperty('setup_version') === key) return;
   getSheet(ss, SHEET_RESULTS, RESULT_HEADERS); getSheet(ss, SHEET_LEADS, LEAD_HEADERS); getSheet(ss, SHEET_SHARES, SHARE_HEADERS);
-  getSheet(ss, SHEET_ANSWERS, ANSWER_HEADERS); getSheet(ss, SHEET_EVENTS, EVENT_HEADERS);
+  getSheet(ss, SHEET_ANSWERS, ANSWER_HEADERS); getSheet(ss, SHEET_EVENTS, EVENT_HEADERS); getSheet(ss, SHEET_MAILLOG, MAILLOG_HEADERS);
   seedQuestions(ss); ensureStats(ss);
   props.setProperty('setup_version', key);
 }
@@ -149,6 +186,105 @@ function ensureStats(ss) {
   sh.getRange(2, 1, rows.length, headers.length).setValues(rows);
   sh.getRange(2, 6, rows.length, 2).setNumberFormat('0.0%'); sh.getRange(2, 9, rows.length, 4).setNumberFormat('0%');
   sh.autoResizeColumns(1, 4);
+}
+
+// ===== 自動寄信（v1.3）=====
+// 折扣碼信件內容：依 persona 帶一點個人化，包含折扣碼、到期日、前往商城連結
+function buildMailHtml_(row) {
+  const persona = row.persona || '數位玩家', age = row.age || '';
+  const ageLine = age ? `你的數位年齡是 <b style="color:#1F1F24">${age} 歲</b>，稱號是「<b style="color:#5D59FF">${escapeHtml_(persona)}</b>」。<br>` : '';
+  return `
+    <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#ffffff;opacity:0">${escapeHtml_(MAIL_PREHEADER)}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#EDEDF2" bgcolor="#EDEDF2"><tr><td align="center" style="padding:24px 16px;background:#EDEDF2" bgcolor="#EDEDF2">
+    <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background:#ffffff;border:1px solid #E4E4E8;border-radius:16px" bgcolor="#ffffff"><tr><td style="padding:36px 28px;background:#ffffff" bgcolor="#ffffff">
+      <div style="font-family:-apple-system,'PingFang TC','Microsoft JhengHei',sans-serif;color:#333333;background:#ffffff">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.12em;color:#5D59FF;text-transform:uppercase;margin-bottom:10px">WEiZ Z世代的3C專家</div>
+        <h1 style="color:#1F1F24;margin:0 0 16px;font-size:24px;font-weight:700;line-height:1.35">你的專屬折扣碼到囉</h1>
+        <p style="font-size:15px;line-height:1.7;margin:0 0 24px;color:#333333">Hi，謝謝你來參加「WEiZ 數位年齡測驗」！<br>
+        ${ageLine}這是測驗才有的隱藏版限時折扣碼：</p>
+        <a href="${MAIL_SHOP_URL}" style="display:block;text-decoration:none;color:inherit;background:#F3F3F7;border:1px dashed #5D59FF;border-radius:16px;padding:24px;margin:0 0 28px;text-align:center">
+          <div style="font-size:14px;font-weight:600;color:#1F1F24;margin-bottom:14px">${escapeHtml_(MAIL_COUPON_DESC)}</div>
+          <div style="font-family:'SFMono-Regular',Consolas,Menlo,monospace;font-size:28px;font-weight:700;letter-spacing:3px;color:#5D59FF;background:#fff;border:1px solid #E1E0FF;border-radius:8px;padding:12px 20px;display:inline-block">${escapeHtml_(MAIL_COUPON_CODE)}</div>
+          <div style="font-size:12px;color:#999;margin-top:12px">點一下自動套用折扣・前往商城</div>
+          <div style="font-size:12px;color:#999;margin-top:2px">使用期限：${escapeHtml_(MAIL_COUPON_EXPIRE)}</div>
+        </a>
+        <p style="text-align:center;margin:0 0 28px">
+          <a href="${MAIL_SHOP_URL}" style="background:#5D59FF;color:#fff;text-decoration:none;padding:14px 36px;border-radius:12px;font-weight:600;display:inline-block;font-size:15px;box-shadow:0 4px 14px rgba(93,89,255,.30)">前往 WEiZ 購物商城</a>
+        </p>
+        <div style="border-top:1px solid #E4E4E8;padding-top:16px;text-align:center">
+          <p style="font-size:12px;color:#999;line-height:1.6;margin:0">
+            WEiZ（汯錡國際）・數位年齡測驗，結果為娛樂推估
+          </p>
+        </div>
+      </div>
+    </td></tr></table>
+    </td></tr></table>`;
+}
+function escapeHtml_(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// 手動測試信：只寄一封到 MAIL_TEST_TO，不碰 leads 資料，用來上線前預覽內容
+// 注意：在編輯器手動執行函式時，「執行記錄」不會自動顯示 return 的文字，所以這裡額外用 Logger.log 印出結果，執行完打開左側「執行記錄」就能看到
+function sendTestMail() {
+  let result;
+  if (!MAIL_TEST_TO) { result = 'MAIL_TEST_TO 還沒填，先填你自己的信箱再執行'; }
+  else {
+    const aliases = GmailApp.getAliases();
+    if (aliases.indexOf(MAIL_FROM_ADDRESS) < 0) {
+      result = 'MAIL_FROM_ADDRESS（' + MAIL_FROM_ADDRESS + '）還不是這個帳號的別名，先去 Gmail 設定的「帳戶和匯入」加好再執行；目前可用別名：' + (aliases.join('、') || '（無）');
+    } else {
+      const html = buildMailHtml_({ persona: '數位主力', age: 28 });
+      GmailApp.sendEmail(MAIL_TEST_TO, '[預覽] ' + MAIL_SUBJECT, '', { htmlBody: html, name: MAIL_FROM_NAME, from: MAIL_FROM_ADDRESS });
+      result = '已寄出預覽信到 ' + MAIL_TEST_TO + '（寄件人 ' + MAIL_FROM_ADDRESS + '），去信箱看看（含垃圾郵件匣）';
+    }
+  }
+  Logger.log(result);
+  return result;
+}
+
+// 批次寄送：綁 Apps Script 時間驅動觸發器呼叫，不是給前端 POST/GET 用的
+function sendPendingMail() {
+  if (!MAIL_ENABLED) return 'MAIL_ENABLED=false，未寄送任何信（這是安全預設值）';
+  const lock = LockService.getScriptLock();
+  try { lock.waitLock(10000); } catch (err) { return 'busy，稍後這個觸發器會再跑一次'; }
+  try {
+    if (GmailApp.getAliases().indexOf(MAIL_FROM_ADDRESS) < 0) return 'MAIL_FROM_ADDRESS（' + MAIL_FROM_ADDRESS + '）還不是這個帳號的別名，先去 Gmail 設定加好，不然全部會寄送失敗';
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    ensureSetup(ss);
+    const props = PropertiesService.getScriptProperties();
+    let activatedAt = props.getProperty('mail_activated_at');
+    if (!activatedAt) { activatedAt = new Date().toISOString(); props.setProperty('mail_activated_at', activatedAt); } // 第一次跑就把「啟用時刻」釘住，之後不會變動
+    const sh = getSheet(ss, SHEET_LEADS, LEAD_HEADERS);
+    const last = sh.getLastRow(); if (last < 2) return '目前沒有名單';
+    const header = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+    const iTs = header.indexOf('ts'), iEmail = header.indexOf('email'), iAge = header.indexOf('age'), iPersona = header.indexOf('persona'),
+      iTest = header.indexOf('test_mode'), iStatus = header.indexOf('mail_status'), iSentAt = header.indexOf('mail_sent_at'), iErr = header.indexOf('mail_error');
+    if (iStatus < 0) return 'mail_status 欄位不存在，請先重新部署這份 v1.3';
+    const data = sh.getRange(2, 1, last - 1, sh.getLastColumn()).getValues();
+    let quota = MailApp.getRemainingDailyQuota();
+    let sent = 0, failed = 0, skippedQuota = 0;
+    for (let i = 0; i < data.length && sent + failed < MAIL_BATCH_SIZE; i++) {
+      const r = data[i], rowNum = i + 2;
+      if (String(r[iStatus] || '').trim()) continue; // 已處理過（sent／failed）
+      if (Number(r[iTest]) === 1) continue; // 測試資料不寄
+      if (!MAIL_BACKFILL_EXISTING && r[iTs] && new Date(r[iTs]).toISOString() < activatedAt) continue; // 啟用前的舊名單，預設不補寄
+      if (quota <= 0) { skippedQuota++; continue; }
+      const email = String(r[iEmail] || '').trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { sh.getRange(rowNum, iStatus + 1).setValue('failed'); sh.getRange(rowNum, iErr + 1).setValue('bad email'); failed++; continue; }
+      try {
+        GmailApp.sendEmail(email, MAIL_SUBJECT, '', { htmlBody: buildMailHtml_({ persona: r[iPersona], age: r[iAge] }), name: MAIL_FROM_NAME, from: MAIL_FROM_ADDRESS });
+        sh.getRange(rowNum, iStatus + 1).setValue('sent'); sh.getRange(rowNum, iSentAt + 1).setValue(new Date().toISOString()); sh.getRange(rowNum, iErr + 1).setValue('');
+        logMail_(ss, email, 'sent', '', rowNum); sent++; quota--;
+      } catch (err) {
+        sh.getRange(rowNum, iStatus + 1).setValue('failed'); sh.getRange(rowNum, iErr + 1).setValue(String(err && err.message || err).slice(0, 200));
+        logMail_(ss, email, 'failed', String(err && err.message || err).slice(0, 200), rowNum); failed++;
+      }
+    }
+    return `寄出 ${sent} 封、失敗 ${failed} 封` + (skippedQuota ? `、${skippedQuota} 封因今日配額用完延到下次` : '');
+  } finally { lock.releaseLock(); }
+}
+function logMail_(ss, email, status, error, rowNum) {
+  const sh = getSheet(ss, SHEET_MAILLOG, MAILLOG_HEADERS);
+  sh.appendRow([new Date().toISOString(), email, status, error, MAIL_COUPON_CODE, rowNum]);
 }
 
 // ---- 工具 ----
